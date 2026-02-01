@@ -2,7 +2,7 @@
 import { SignedIn, SignedOut } from "@clerk/astro/components";
 ---
 
-<html lang="pt-BR">
+<html lang="pt-BR" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
     <meta
@@ -15,6 +15,76 @@ import { SignedIn, SignedOut } from "@clerk/astro/components";
     <title>Produtos - ScarTech Solutions</title>
     <link rel="icon" type="image/png" href="/logo.png" />
     <style>
+      /* CSS Variables para Temas */
+      :root {
+        --bg-primary: #0a0a0f;
+        --bg-secondary: #12121a;
+        --bg-card: linear-gradient(145deg, #12121a 0%, #1a1a2e 100%);
+        --bg-sidebar: linear-gradient(180deg, #0d0d12 0%, #12121a 100%);
+        --bg-header: linear-gradient(180deg, rgba(10, 10, 15, 0.95), rgba(10, 10, 15, 0.8));
+        --bg-input: #1a1a2e;
+        --text-primary: #ffffff;
+        --text-secondary: #e0e0e0;
+        --text-muted: #6b7280;
+        --border-color: rgba(0, 255, 255, 0.1);
+        --accent-color: #00ffff;
+        --accent-secondary: #00ff88;
+        --card-border: rgba(0, 255, 255, 0.1);
+        --overlay-bg: rgba(0, 0, 0, 0.7);
+        --shadow-color: rgba(0, 212, 255, 0.2);
+        --success-color: #00ff88;
+        --warning-color: #f59e0b;
+        --danger-color: #ef4444;
+      }
+
+      [data-theme="light"] {
+        --bg-primary: #f5f5f5;
+        --bg-secondary: #ffffff;
+        --bg-card: linear-gradient(145deg, #ffffff 0%, #f0f0f0 100%);
+        --bg-sidebar: linear-gradient(180deg, #ffffff 0%, #f5f5f5 100%);
+        --bg-header: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(245, 245, 245, 0.9));
+        --bg-input: #f0f0f0;
+        --text-primary: #1a1a2e;
+        --text-secondary: #4a4a5a;
+        --text-muted: #6b7280;
+        --border-color: rgba(0, 150, 200, 0.2);
+        --accent-color: #0088aa;
+        --accent-secondary: #00aa66;
+        --card-border: rgba(0, 150, 200, 0.2);
+        --overlay-bg: rgba(255, 255, 255, 0.9);
+        --shadow-color: rgba(0, 0, 0, 0.1);
+        --success-color: #00aa66;
+        --warning-color: #d97706;
+        --danger-color: #dc2626;
+      }
+
+      /* Theme Toggle Button */
+      .theme-toggle {
+        position: fixed;
+        top: 15px;
+        right: 15px;
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1001;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 10px var(--shadow-color);
+      }
+      .theme-toggle:hover {
+        transform: scale(1.1);
+        box-shadow: 0 4px 20px var(--shadow-color);
+      }
+      .theme-icon {
+        font-size: 1.3rem;
+        line-height: 1;
+      }
+
       * {
         margin: 0;
         padding: 0;
@@ -22,11 +92,12 @@ import { SignedIn, SignedOut } from "@clerk/astro/components";
       }
       body {
         font-family: "Segoe UI", sans-serif;
-        background: #0a0a0f;
-        color: #e0e0e0;
+        background: var(--bg-primary);
+        color: var(--text-secondary);
         min-height: 100vh;
         min-height: -webkit-fill-available;
         -webkit-tap-highlight-color: transparent;
+        transition: background 0.3s ease, color 0.3s ease;
       }
       html {
         height: -webkit-fill-available;
@@ -37,8 +108,8 @@ import { SignedIn, SignedOut } from "@clerk/astro/components";
       }
       .sidebar {
         width: 260px;
-        background: linear-gradient(180deg, #0d0d12 0%, #12121a 100%);
-        border-right: 1px solid rgba(0, 255, 255, 0.1);
+        background: var(--bg-sidebar);
+        border-right: 1px solid var(--border-color);
         padding: 20px 0;
         display: flex;
         flex-direction: column;
@@ -50,7 +121,7 @@ import { SignedIn, SignedOut } from "@clerk/astro/components";
       }
       .sidebar-header {
         padding: 0 20px 20px;
-        border-bottom: 1px solid rgba(0, 255, 255, 0.1);
+        border-bottom: 1px solid var(--border-color);
         display: flex;
         align-items: center;
         gap: 12px;
@@ -374,6 +445,9 @@ import { SignedIn, SignedOut } from "@clerk/astro/components";
         .mobile-menu-btn {
           display: flex;
         }
+        .page-header {
+          padding-left: 55px;
+        }
         .sidebar {
           position: fixed;
           left: 0;
@@ -481,6 +555,11 @@ import { SignedIn, SignedOut } from "@clerk/astro/components";
     </SignedOut>
 
     <SignedIn>
+      <!-- Theme Toggle Button -->
+      <button class="theme-toggle" id="themeToggle" title="Alternar tema">
+        <span class="theme-icon">🌙</span>
+      </button>
+
       <!-- Mobile Menu Button -->
       <button class="mobile-menu-btn" id="mobileMenuBtn">
         <span></span><span></span><span></span>
@@ -592,7 +671,36 @@ import { SignedIn, SignedOut } from "@clerk/astro/components";
       </div>
     </SignedIn>
 
-    <script>
+    <script is:inline>
+      // Theme management
+      (function() {
+        const themeToggle = document.getElementById("themeToggle");
+        const themeIcon = themeToggle?.querySelector(".theme-icon");
+        
+        function initTheme() {
+          const savedTheme = localStorage.getItem("scartech_theme");
+          const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+          const theme = savedTheme || (prefersDark ? "dark" : "light");
+          document.documentElement.setAttribute("data-theme", theme);
+          updateThemeIcon(theme);
+        }
+        
+        function updateThemeIcon(theme) {
+          if (themeIcon) themeIcon.textContent = theme === "dark" ? "☀️" : "🌙";
+        }
+        
+        function toggleTheme() {
+          const currentTheme = document.documentElement.getAttribute("data-theme");
+          const newTheme = currentTheme === "dark" ? "light" : "dark";
+          document.documentElement.setAttribute("data-theme", newTheme);
+          localStorage.setItem("scartech_theme", newTheme);
+          updateThemeIcon(newTheme);
+        }
+        
+        themeToggle?.addEventListener("click", toggleTheme);
+        initTheme();
+      })();
+
       const sidebar = document.getElementById("sidebar");
       const toggleBtn = document.getElementById("toggleBtn");
       const mobileMenuBtn = document.getElementById("mobileMenuBtn");
@@ -637,16 +745,16 @@ import { SignedIn, SignedOut } from "@clerk/astro/components";
         }
       }
 
-      window.abrirModal = function () {
-        document.getElementById("modalProduto").classList.add("active");
+      /** @type {any} */ (window).abrirModal = function () {
+        document.getElementById("modalProduto")?.classList.add("active");
       };
 
-      window.fecharModal = function () {
-        document.getElementById("modalProduto").classList.remove("active");
-        document.getElementById("formProduto").reset();
+      /** @type {any} */ (window).fecharModal = function () {
+        document.getElementById("modalProduto")?.classList.remove("active");
+        /** @type {HTMLFormElement} */ (document.getElementById("formProduto"))?.reset();
       };
 
-      window.excluirProduto = function (index) {
+      /** @type {any} */ (window).excluirProduto = function (/** @type {number} */ index) {
         if (confirm("Excluir este produto?")) {
           produtos.splice(index, 1);
           localStorage.setItem("scartech_produtos", JSON.stringify(produtos));
@@ -659,13 +767,13 @@ import { SignedIn, SignedOut } from "@clerk/astro/components";
         ?.addEventListener("submit", (e) => {
           e.preventDefault();
           const produto = {
-            nome: document.getElementById("nomeProduto").value,
-            preco: parseFloat(document.getElementById("precoProduto").value),
-            estoque: parseInt(document.getElementById("estoqueProduto").value),
+            nome: /** @type {HTMLInputElement} */ (document.getElementById("nomeProduto"))?.value || "",
+            preco: parseFloat(/** @type {HTMLInputElement} */ (document.getElementById("precoProduto"))?.value || "0"),
+            estoque: parseInt(/** @type {HTMLInputElement} */ (document.getElementById("estoqueProduto"))?.value || "0"),
           };
           produtos.push(produto);
           localStorage.setItem("scartech_produtos", JSON.stringify(produtos));
-          window.fecharModal();
+          /** @type {any} */ (window).fecharModal();
           renderProdutos();
         });
 

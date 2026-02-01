@@ -402,7 +402,7 @@ import { SignedIn, SignedOut, UserButton } from "@clerk/astro/components";
           padding-top: 75px;
         }
         .header {
-          padding: 0.75rem 1rem;
+          padding: 0.75rem 1rem 0.75rem 5rem;
           margin-bottom: 1rem;
         }
         .header h1 {
@@ -599,23 +599,51 @@ import { SignedIn, SignedOut, UserButton } from "@clerk/astro/components";
         </div>
       </main>
 
-      <script>
+      <script is:inline>
+        // Theme management
+        const themeToggle = document.getElementById("themeToggle");
+        const themeIcon = themeToggle?.querySelector(".theme-icon");
+        
+        function initTheme() {
+          const savedTheme = localStorage.getItem("scartech_theme");
+          const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+          const theme = savedTheme || (prefersDark ? "dark" : "light");
+          document.documentElement.setAttribute("data-theme", theme);
+          updateThemeIcon(theme);
+        }
+        
+        function updateThemeIcon(theme) {
+          if (themeIcon) themeIcon.textContent = theme === "dark" ? "☀️" : "🌙";
+        }
+        
+        function toggleTheme() {
+          const currentTheme = document.documentElement.getAttribute("data-theme");
+          const newTheme = currentTheme === "dark" ? "light" : "dark";
+          document.documentElement.setAttribute("data-theme", newTheme);
+          localStorage.setItem("scartech_theme", newTheme);
+          updateThemeIcon(newTheme);
+        }
+        
+        themeToggle?.addEventListener("click", toggleTheme);
+        initTheme();
+
+        // Menu management
         const menuToggle = document.getElementById("menuToggle");
         const sidebar = document.getElementById("sidebar");
         const overlay = document.getElementById("sidebarOverlay");
 
         function toggleMenu() {
-          menuToggle.classList.toggle("active");
-          sidebar.classList.toggle("open");
-          overlay.classList.toggle("visible");
+          menuToggle?.classList.toggle("active");
+          sidebar?.classList.toggle("open");
+          overlay?.classList.toggle("visible");
         }
 
-        menuToggle.addEventListener("click", toggleMenu);
-        overlay.addEventListener("click", toggleMenu);
+        menuToggle?.addEventListener("click", toggleMenu);
+        overlay?.addEventListener("click", toggleMenu);
 
         // Close menu on escape key
         document.addEventListener("keydown", (e) => {
-          if (e.key === "Escape" && sidebar.classList.contains("open")) {
+          if (e.key === "Escape" && sidebar?.classList.contains("open")) {
             toggleMenu();
           }
         });

@@ -2,7 +2,7 @@
 import { SignedIn, SignedOut } from "@clerk/astro/components";
 ---
 
-<html lang="pt-BR">
+<html lang="pt-BR" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
     <meta
@@ -24,6 +24,76 @@ import { SignedIn, SignedOut } from "@clerk/astro/components";
       src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"
     ></script>
     <style>
+      /* CSS Variables para Temas */
+      :root {
+        --bg-primary: #0a0a0f;
+        --bg-secondary: #12121a;
+        --bg-card: linear-gradient(145deg, #12121a 0%, #1a1a2e 100%);
+        --bg-sidebar: linear-gradient(180deg, #0d0d12 0%, #12121a 100%);
+        --bg-header: linear-gradient(180deg, rgba(10, 10, 15, 0.95), rgba(10, 10, 15, 0.8));
+        --bg-input: #1a1a2e;
+        --text-primary: #ffffff;
+        --text-secondary: #e0e0e0;
+        --text-muted: #6b7280;
+        --border-color: rgba(0, 255, 255, 0.1);
+        --accent-color: #00ffff;
+        --accent-secondary: #00ff88;
+        --card-border: rgba(0, 255, 255, 0.1);
+        --overlay-bg: rgba(0, 0, 0, 0.7);
+        --shadow-color: rgba(0, 212, 255, 0.2);
+        --success-color: #00ff88;
+        --warning-color: #f59e0b;
+        --danger-color: #ef4444;
+      }
+
+      [data-theme="light"] {
+        --bg-primary: #f5f5f5;
+        --bg-secondary: #ffffff;
+        --bg-card: linear-gradient(145deg, #ffffff 0%, #f0f0f0 100%);
+        --bg-sidebar: linear-gradient(180deg, #ffffff 0%, #f5f5f5 100%);
+        --bg-header: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(245, 245, 245, 0.9));
+        --bg-input: #f0f0f0;
+        --text-primary: #1a1a2e;
+        --text-secondary: #4a4a5a;
+        --text-muted: #6b7280;
+        --border-color: rgba(0, 150, 200, 0.2);
+        --accent-color: #0088aa;
+        --accent-secondary: #00aa66;
+        --card-border: rgba(0, 150, 200, 0.2);
+        --overlay-bg: rgba(255, 255, 255, 0.9);
+        --shadow-color: rgba(0, 0, 0, 0.1);
+        --success-color: #00aa66;
+        --warning-color: #d97706;
+        --danger-color: #dc2626;
+      }
+
+      /* Theme Toggle Button */
+      .theme-toggle {
+        position: fixed;
+        top: 15px;
+        right: 15px;
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1001;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 10px var(--shadow-color);
+      }
+      .theme-toggle:hover {
+        transform: scale(1.1);
+        box-shadow: 0 4px 20px var(--shadow-color);
+      }
+      .theme-icon {
+        font-size: 1.3rem;
+        line-height: 1;
+      }
+
       * {
         margin: 0;
         padding: 0;
@@ -31,11 +101,12 @@ import { SignedIn, SignedOut } from "@clerk/astro/components";
       }
       body {
         font-family: "Segoe UI", sans-serif;
-        background: #0a0a0f;
-        color: #e0e0e0;
+        background: var(--bg-primary);
+        color: var(--text-secondary);
         min-height: 100vh;
         min-height: -webkit-fill-available;
         -webkit-tap-highlight-color: transparent;
+        transition: background 0.3s ease, color 0.3s ease;
       }
       html {
         height: -webkit-fill-available;
@@ -46,12 +117,12 @@ import { SignedIn, SignedOut } from "@clerk/astro/components";
       }
       .sidebar {
         width: 260px;
-        background: linear-gradient(180deg, #0d0d12 0%, #12121a 100%);
-        border-right: 1px solid rgba(0, 255, 255, 0.1);
+        background: var(--bg-sidebar);
+        border-right: 1px solid var(--border-color);
         padding: 20px 0;
         display: flex;
         flex-direction: column;
-        transition: width 0.3s ease;
+        transition: width 0.3s ease, background 0.3s ease;
         position: relative;
       }
       .sidebar.collapsed {
@@ -59,7 +130,7 @@ import { SignedIn, SignedOut } from "@clerk/astro/components";
       }
       .sidebar-header {
         padding: 0 20px 20px;
-        border-bottom: 1px solid rgba(0, 255, 255, 0.1);
+        border-bottom: 1px solid var(--border-color);
         display: flex;
         align-items: center;
         gap: 12px;
@@ -76,7 +147,7 @@ import { SignedIn, SignedOut } from "@clerk/astro/components";
       .logo-text {
         font-size: 1.2rem;
         font-weight: 700;
-        color: #00ffff;
+        color: var(--accent-color);
         white-space: nowrap;
       }
       .sidebar.collapsed .logo-text {
@@ -88,14 +159,14 @@ import { SignedIn, SignedOut } from "@clerk/astro/components";
         right: -15px;
         width: 30px;
         height: 30px;
-        background: #1a1a2e;
-        border: 1px solid rgba(0, 255, 255, 0.3);
+        background: var(--bg-input);
+        border: 1px solid var(--border-color);
         border-radius: 50%;
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
-        color: #00ffff;
+        color: var(--accent-color);
         transition: all 0.3s ease;
         z-index: 10;
       }
@@ -112,7 +183,7 @@ import { SignedIn, SignedOut } from "@clerk/astro/components";
         display: block;
         width: 14px;
         height: 2px;
-        background: #00ffff;
+        background: var(--accent-color);
       }
       .nav-section {
         padding: 20px 0;
@@ -174,17 +245,18 @@ import { SignedIn, SignedOut } from "@clerk/astro/components";
       }
       .page-title {
         font-size: 1.8rem;
-        color: #fff;
+        color: var(--text-primary);
         margin-bottom: 5px;
       }
       .page-subtitle {
         color: #666;
       }
       .card {
-        background: linear-gradient(145deg, #12121a 0%, #1a1a2e 100%);
-        border: 1px solid rgba(0, 255, 255, 0.1);
+        background: var(--bg-card);
+        border: 1px solid var(--card-border);
         border-radius: 12px;
         padding: 30px;
+        transition: background 0.3s ease;
       }
 
       .form-grid {
@@ -210,18 +282,18 @@ import { SignedIn, SignedOut } from "@clerk/astro/components";
       .form-group input,
       .form-group textarea {
         padding: 12px 15px;
-        background: rgba(0, 0, 0, 0.3);
-        border: 1px solid rgba(0, 255, 255, 0.2);
+        background: var(--bg-input);
+        border: 1px solid var(--border-color);
         border-radius: 8px;
-        color: #fff;
+        color: var(--text-primary);
         font-size: 1rem;
         transition: all 0.3s ease;
       }
       .form-group input:focus,
       .form-group textarea:focus {
         outline: none;
-        border-color: #00ffff;
-        box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
+        border-color: var(--accent-color);
+        box-shadow: 0 0 10px var(--shadow-color);
       }
       .form-group textarea {
         min-height: 80px;
@@ -284,10 +356,10 @@ import { SignedIn, SignedOut } from "@clerk/astro/components";
       .signature-section {
         margin-top: 30px;
         padding-top: 20px;
-        border-top: 1px dashed rgba(0, 255, 255, 0.3);
+        border-top: 1px dashed var(--border-color);
       }
       .signature-section h3 {
-        color: #00ffff;
+        color: var(--accent-color);
         font-size: 1.1rem;
         margin-bottom: 20px;
         display: flex;
@@ -300,8 +372,8 @@ import { SignedIn, SignedOut } from "@clerk/astro/components";
         gap: 30px;
       }
       .signature-pad-container {
-        background: rgba(0, 0, 0, 0.3);
-        border: 1px solid rgba(0, 255, 255, 0.2);
+        background: var(--bg-input);
+        border: 1px solid var(--border-color);
         border-radius: 12px;
         padding: 15px;
       }
@@ -332,18 +404,18 @@ import { SignedIn, SignedOut } from "@clerk/astro/components";
         gap: 40px;
         margin-top: 30px;
         padding-top: 20px;
-        border-top: 1px dashed rgba(0, 255, 255, 0.3);
+        border-top: 1px dashed var(--border-color);
       }
       .signature-box {
         text-align: center;
       }
       .signature-box span {
         font-size: 0.9rem;
-        color: #666;
+        color: var(--text-muted);
       }
       .signature-line {
         margin-top: 40px;
-        border-bottom: 1px solid #00ffff;
+        border-bottom: 1px solid var(--accent-color);
       }
 
       .form-actions {
@@ -352,7 +424,7 @@ import { SignedIn, SignedOut } from "@clerk/astro/components";
         justify-content: flex-end;
         margin-top: 30px;
         padding-top: 20px;
-        border-top: 1px solid rgba(0, 255, 255, 0.1);
+        border-top: 1px solid var(--border-color);
       }
 
       .btn {
@@ -365,8 +437,8 @@ import { SignedIn, SignedOut } from "@clerk/astro/components";
           rgba(0, 255, 255, 0.1) 0%,
           rgba(0, 255, 255, 0.05) 100%
         );
-        border: 1px solid rgba(0, 255, 255, 0.3);
-        color: #00ffff;
+        border: 1px solid var(--border-color);
+        color: var(--accent-color);
         text-decoration: none;
         border-radius: 8px;
         transition: all 0.3s ease;
@@ -375,7 +447,7 @@ import { SignedIn, SignedOut } from "@clerk/astro/components";
       }
       .btn:hover {
         background: rgba(0, 255, 255, 0.2);
-        box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+        box-shadow: 0 0 20px var(--shadow-color);
         transform: translateY(-2px);
       }
       .btn-primary {
@@ -438,8 +510,8 @@ import { SignedIn, SignedOut } from "@clerk/astro/components";
         z-index: 1001;
         width: 45px;
         height: 45px;
-        background: linear-gradient(135deg, #12121a 0%, #1a1a2e 100%);
-        border: 1px solid rgba(0, 255, 255, 0.3);
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
         border-radius: 12px;
         cursor: pointer;
         flex-direction: column;
@@ -451,7 +523,7 @@ import { SignedIn, SignedOut } from "@clerk/astro/components";
         display: block;
         width: 22px;
         height: 2px;
-        background: #00ffff;
+        background: var(--accent-color);
         transition: all 0.3s ease;
       }
       .mobile-menu-btn.active span:nth-child(1) {
@@ -467,7 +539,7 @@ import { SignedIn, SignedOut } from "@clerk/astro/components";
         display: none;
         position: fixed;
         inset: 0;
-        background: rgba(0, 0, 0, 0.6);
+        background: var(--overlay-bg);
         backdrop-filter: blur(4px);
         z-index: 999;
       }
@@ -479,6 +551,9 @@ import { SignedIn, SignedOut } from "@clerk/astro/components";
       @media (max-width: 768px) {
         .mobile-menu-btn {
           display: flex;
+        }
+        .page-header {
+          padding-left: 55px;
         }
         .sidebar {
           position: fixed;
@@ -602,6 +677,11 @@ import { SignedIn, SignedOut } from "@clerk/astro/components";
     </SignedOut>
 
     <SignedIn>
+      <!-- Theme Toggle Button -->
+      <button class="theme-toggle" id="themeToggle" title="Alternar tema">
+        <span class="theme-icon">🌙</span>
+      </button>
+
       <!-- Mobile Menu Button -->
       <button class="mobile-menu-btn" id="mobileMenuBtn">
         <span></span><span></span><span></span>
@@ -805,6 +885,35 @@ import { SignedIn, SignedOut } from "@clerk/astro/components";
     </SignedIn>
 
     <script is:inline>
+      // Theme management
+      (function() {
+        const themeToggle = document.getElementById("themeToggle");
+        const themeIcon = themeToggle?.querySelector(".theme-icon");
+        
+        function initTheme() {
+          const savedTheme = localStorage.getItem("scartech_theme");
+          const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+          const theme = savedTheme || (prefersDark ? "dark" : "light");
+          document.documentElement.setAttribute("data-theme", theme);
+          updateThemeIcon(theme);
+        }
+        
+        function updateThemeIcon(theme) {
+          if (themeIcon) themeIcon.textContent = theme === "dark" ? "☀️" : "🌙";
+        }
+        
+        function toggleTheme() {
+          const currentTheme = document.documentElement.getAttribute("data-theme");
+          const newTheme = currentTheme === "dark" ? "light" : "dark";
+          document.documentElement.setAttribute("data-theme", newTheme);
+          localStorage.setItem("scartech_theme", newTheme);
+          updateThemeIcon(newTheme);
+        }
+        
+        themeToggle?.addEventListener("click", toggleTheme);
+        initTheme();
+      })();
+
       // Toggle sidebar
       document.getElementById("toggleBtn")?.addEventListener("click", () => {
         document.getElementById("sidebar")?.classList.toggle("collapsed");

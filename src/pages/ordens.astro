@@ -419,6 +419,9 @@ import { SignedIn, SignedOut } from "@clerk/astro/components";
         .mobile-menu-btn {
           display: flex;
         }
+        .page-header {
+          padding-left: 55px;
+        }
         .sidebar {
           position: fixed;
           left: 0;
@@ -458,7 +461,8 @@ import { SignedIn, SignedOut } from "@clerk/astro/components";
         table {
           font-size: 0.8rem;
         }
-        th, td {
+        th,
+        td {
           padding: 10px 8px;
         }
         .btn {
@@ -481,7 +485,10 @@ import { SignedIn, SignedOut } from "@clerk/astro/components";
           flex-wrap: wrap;
           gap: 5px;
         }
-        .btn-view, .btn-edit, .btn-status, .btn-delete {
+        .btn-view,
+        .btn-edit,
+        .btn-status,
+        .btn-delete {
           padding: 6px 8px;
           font-size: 0.75rem;
         }
@@ -531,6 +538,11 @@ import { SignedIn, SignedOut } from "@clerk/astro/components";
     </SignedOut>
 
     <SignedIn>
+      <!-- Theme Toggle Button -->
+      <button class="theme-toggle" id="themeToggle" title="Alternar tema">
+        <span class="theme-icon">🌙</span>
+      </button>
+
       <!-- Mobile Menu Button -->
       <button class="mobile-menu-btn" id="mobileMenuBtn">
         <span></span><span></span><span></span>
@@ -721,6 +733,35 @@ import { SignedIn, SignedOut } from "@clerk/astro/components";
     </SignedIn>
 
     <script is:inline>
+      // Theme management
+      (function() {
+        const themeToggle = document.getElementById("themeToggle");
+        const themeIcon = themeToggle?.querySelector(".theme-icon");
+        
+        function initTheme() {
+          const savedTheme = localStorage.getItem("scartech_theme");
+          const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+          const theme = savedTheme || (prefersDark ? "dark" : "light");
+          document.documentElement.setAttribute("data-theme", theme);
+          updateThemeIcon(theme);
+        }
+        
+        function updateThemeIcon(theme) {
+          if (themeIcon) themeIcon.textContent = theme === "dark" ? "☀️" : "🌙";
+        }
+        
+        function toggleTheme() {
+          const currentTheme = document.documentElement.getAttribute("data-theme");
+          const newTheme = currentTheme === "dark" ? "light" : "dark";
+          document.documentElement.setAttribute("data-theme", newTheme);
+          localStorage.setItem("scartech_theme", newTheme);
+          updateThemeIcon(newTheme);
+        }
+        
+        themeToggle?.addEventListener("click", toggleTheme);
+        initTheme();
+      })();
+
       document.getElementById("toggleBtn")?.addEventListener("click", () => {
         document.getElementById("sidebar")?.classList.toggle("collapsed");
       });
