@@ -1,13 +1,12 @@
 ---
-import { SignIn } from "@clerk/astro/components";
-import { SignedIn, SignedOut } from "@clerk/astro/components";
+import { SignUp } from "@clerk/astro/components";
 ---
 
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ScarTech Solutions - Login</title>
+    <title>ScarTech Solutions - Criar Conta</title>
     <style>
       * {
         margin: 0;
@@ -23,7 +22,7 @@ import { SignedIn, SignedOut } from "@clerk/astro/components";
         align-items: center;
         justify-content: center;
       }
-      .login-container {
+      .signup-container {
         text-align: center;
         padding: 2rem;
         width: 100%;
@@ -39,7 +38,7 @@ import { SignedIn, SignedOut } from "@clerk/astro/components";
         object-fit: contain;
       }
 
-      /* Customização do Clerk SignIn */
+      /* Customização do Clerk SignUp */
       :global(.cl-rootBox) {
         width: 100%;
       }
@@ -97,60 +96,21 @@ import { SignedIn, SignedOut } from "@clerk/astro/components";
       /* Esconder login social e campos de telefone */
       :global(.cl-socialButtons),
       :global(.cl-socialButtonsBlockButton),
-      :global(.cl-socialButtonsProviderIcon),
       :global(.cl-dividerRow),
       :global(.cl-formFieldRow__phoneNumber),
       :global([data-localization-key*="phone"]),
       :global(.cl-formField__phoneNumber) {
         display: none !important;
       }
-
-      .welcome-container {
-        background: #ffffff;
-        border: 1px solid #e0e0e0;
-        border-radius: 16px;
-        padding: 2rem;
-        text-align: center;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-      }
-      .welcome-text {
-        color: #4caf50;
-        font-size: 1.2rem;
-        margin-bottom: 1.5rem;
-      }
-      .btn-dashboard {
-        display: inline-block;
-        padding: 0.875rem 2rem;
-        background: linear-gradient(135deg, #1e88e5 0%, #1565c0 100%);
-        color: white;
-        text-decoration: none;
-        border-radius: 10px;
-        font-weight: 600;
-        transition: all 0.3s ease;
-      }
-      .btn-dashboard:hover {
-        background: linear-gradient(135deg, #42a5f5 0%, #1e88e5 100%);
-        transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(30, 136, 229, 0.3);
-      }
     </style>
   </head>
   <body>
-    <div class="login-container">
+    <div class="signup-container">
       <div class="logo-container">
         <img src="/logo.png" alt="ScarTech Solutions" class="logo-icon" />
       </div>
 
-      <SignedOut>
-        <SignIn routing="path" path="/" signUpUrl="/cadastro" />
-      </SignedOut>
-
-      <SignedIn>
-        <div class="welcome-container">
-          <p class="welcome-text">✓ Você está conectado!</p>
-          <a href="/dashboard" class="btn-dashboard">Acessar Dashboard</a>
-        </div>
-      </SignedIn>
+      <SignUp routing="path" path="/cadastro" signInUrl="/" />
     </div>
   </body>
 </html>

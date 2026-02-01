@@ -1,0 +1,550 @@
+---
+import { SignedIn, SignedOut, UserButton } from "@clerk/astro/components";
+---
+
+<html lang="pt-BR">
+  <head>
+    <title>Dashboard - ScarTech</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", system-ui, sans-serif;
+        background: #0a0a0f;
+        color: #ffffff;
+        min-height: 100vh;
+      }
+
+      /* Sidebar */
+      .sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        height: 100vh;
+        width: 280px;
+        background: linear-gradient(180deg, #12121a 0%, #0a0a0f 100%);
+        border-right: 1px solid rgba(0, 212, 255, 0.1);
+        padding: 1.5rem;
+        transform: translateX(-100%);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        z-index: 1000;
+        overflow-y: auto;
+      }
+
+      .sidebar.open {
+        transform: translateX(0);
+      }
+
+      .sidebar-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(4px);
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+        z-index: 999;
+      }
+
+      .sidebar-overlay.visible {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      .sidebar-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid rgba(0, 212, 255, 0.1);
+        margin-bottom: 1.5rem;
+      }
+
+      .sidebar-logo {
+        width: 45px;
+        height: 45px;
+        border-radius: 12px;
+        object-fit: contain;
+        background: rgba(0, 212, 255, 0.1);
+        padding: 8px;
+      }
+
+      .sidebar-title {
+        font-size: 1.2rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #00d4ff, #00ff88);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .nav-section {
+        margin-bottom: 2rem;
+      }
+
+      .nav-section-title {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #6b7280;
+        margin-bottom: 0.75rem;
+        padding-left: 0.75rem;
+      }
+
+      .nav-item {
+        display: flex;
+        align-items: center;
+        gap: 0.875rem;
+        padding: 0.875rem 1rem;
+        border-radius: 12px;
+        color: #9ca3af;
+        text-decoration: none;
+        font-size: 0.95rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        margin-bottom: 0.25rem;
+      }
+
+      .nav-item::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          135deg,
+          rgba(0, 212, 255, 0.15),
+          rgba(0, 255, 136, 0.15)
+        );
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        border-radius: 12px;
+      }
+
+      .nav-item:hover {
+        color: #00d4ff;
+        text-shadow:
+          0 0 20px rgba(0, 212, 255, 0.8),
+          0 0 40px rgba(0, 212, 255, 0.6),
+          0 0 60px rgba(0, 212, 255, 0.4);
+      }
+
+      .nav-item:hover::before {
+        opacity: 1;
+      }
+
+      .nav-item:hover .nav-icon {
+        filter: drop-shadow(0 0 8px rgba(0, 212, 255, 0.8))
+          drop-shadow(0 0 16px rgba(0, 212, 255, 0.6));
+        transform: scale(1.1);
+      }
+
+      .nav-item.active {
+        color: #00d4ff;
+        background: linear-gradient(
+          135deg,
+          rgba(0, 212, 255, 0.2),
+          rgba(0, 255, 136, 0.1)
+        );
+        box-shadow:
+          0 0 20px rgba(0, 212, 255, 0.3),
+          inset 0 0 20px rgba(0, 212, 255, 0.1);
+      }
+
+      .nav-icon {
+        font-size: 1.25rem;
+        width: 28px;
+        text-align: center;
+        transition: all 0.3s ease;
+      }
+
+      /* Menu Toggle Button */
+      .menu-toggle {
+        position: fixed;
+        top: 1.25rem;
+        left: 1.25rem;
+        width: 48px;
+        height: 48px;
+        background: linear-gradient(135deg, #12121a, #1a1a2e);
+        border: 1px solid rgba(0, 212, 255, 0.2);
+        border-radius: 12px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        cursor: pointer;
+        z-index: 1001;
+        transition: all 0.3s ease;
+      }
+
+      .menu-toggle:hover {
+        border-color: #00d4ff;
+        box-shadow:
+          0 0 20px rgba(0, 212, 255, 0.4),
+          0 0 40px rgba(0, 212, 255, 0.2);
+      }
+
+      .menu-toggle span {
+        width: 22px;
+        height: 3px;
+        background: #00d4ff;
+        border-radius: 2px;
+        transition: all 0.3s ease;
+        box-shadow: 0 0 8px rgba(0, 212, 255, 0.6);
+      }
+
+      .menu-toggle.active span:nth-child(1) {
+        transform: rotate(45deg) translate(5px, 5px);
+      }
+
+      .menu-toggle.active span:nth-child(2) {
+        opacity: 0;
+      }
+
+      .menu-toggle.active span:nth-child(3) {
+        transform: rotate(-45deg) translate(6px, -6px);
+      }
+
+      /* Header */
+      .header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 70px;
+        background: linear-gradient(
+          180deg,
+          rgba(10, 10, 15, 0.95),
+          rgba(10, 10, 15, 0.8)
+        );
+        backdrop-filter: blur(12px);
+        border-bottom: 1px solid rgba(0, 212, 255, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 2rem 0 5rem;
+        z-index: 100;
+      }
+
+      .header-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #ffffff, #00d4ff);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .header-right {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      /* Main Content */
+      .main-content {
+        padding: 100px 2rem 2rem;
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+
+      .welcome-section {
+        margin-bottom: 2rem;
+      }
+
+      .welcome-title {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+      }
+
+      .welcome-subtitle {
+        color: #6b7280;
+        font-size: 1rem;
+      }
+
+      /* Cards Grid */
+      .cards-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+      }
+
+      .card {
+        background: linear-gradient(135deg, #12121a, #1a1a2e);
+        border: 1px solid rgba(0, 212, 255, 0.1);
+        border-radius: 16px;
+        padding: 1.5rem;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        text-decoration: none;
+        color: inherit;
+        display: block;
+      }
+
+      .card:hover {
+        border-color: rgba(0, 212, 255, 0.5);
+        box-shadow:
+          0 0 30px rgba(0, 212, 255, 0.2),
+          0 0 60px rgba(0, 212, 255, 0.1);
+        transform: translateY(-4px);
+      }
+
+      .card-icon {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        display: block;
+      }
+
+      .card-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: #ffffff;
+      }
+
+      .card-description {
+        color: #6b7280;
+        font-size: 0.9rem;
+      }
+
+      .card.blue:hover {
+        border-color: #3b82f6;
+        box-shadow: 0 0 30px rgba(59, 130, 246, 0.3);
+      }
+
+      .card.green:hover {
+        border-color: #22c55e;
+        box-shadow: 0 0 30px rgba(34, 197, 94, 0.3);
+      }
+
+      .card.yellow:hover {
+        border-color: #f59e0b;
+        box-shadow: 0 0 30px rgba(245, 158, 11, 0.3);
+      }
+
+      .card.purple:hover {
+        border-color: #a855f7;
+        box-shadow: 0 0 30px rgba(168, 85, 247, 0.3);
+      }
+
+      .card.red:hover {
+        border-color: #ef4444;
+        box-shadow: 0 0 30px rgba(239, 68, 68, 0.3);
+      }
+
+      .card.cyan:hover {
+        border-color: #00d4ff;
+        box-shadow: 0 0 30px rgba(0, 212, 255, 0.3);
+      }
+
+      /* Login redirect */
+      .login-redirect {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        text-align: center;
+        padding: 2rem;
+      }
+
+      .login-redirect p {
+        color: #6b7280;
+        margin-bottom: 1.5rem;
+      }
+
+      .btn-login {
+        padding: 0.875rem 2rem;
+        background: linear-gradient(135deg, #00d4ff, #00ff88);
+        color: #0a0a0f;
+        text-decoration: none;
+        border-radius: 12px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+      }
+
+      .btn-login:hover {
+        box-shadow: 0 0 30px rgba(0, 212, 255, 0.5);
+        transform: translateY(-2px);
+      }
+    </style>
+  </head>
+  <body>
+    <SignedIn>
+      <!-- Menu Toggle Button -->
+      <button class="menu-toggle" id="menuToggle">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+
+      <!-- Sidebar Overlay -->
+      <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+      <!-- Sidebar -->
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+          <img src="/logo.png" alt="ScarTech" class="sidebar-logo" />
+          <span class="sidebar-title">ScarTech</span>
+        </div>
+
+        <nav>
+          <div class="nav-section">
+            <div class="nav-section-title">Principal</div>
+            <a href="/dashboard" class="nav-item active">
+              <span class="nav-icon">🏠</span>
+              Dashboard
+            </a>
+            <a href="/ordens" class="nav-item">
+              <span class="nav-icon">📋</span>
+              Ordens de Serviço
+            </a>
+            <a href="/faturamento" class="nav-item">
+              <span class="nav-icon">💰</span>
+              Faturamento
+            </a>
+          </div>
+
+          <div class="nav-section">
+            <div class="nav-section-title">Gestão</div>
+            <a href="/produtos" class="nav-item">
+              <span class="nav-icon">📦</span>
+              Produtos
+            </a>
+            <a href="/vendas" class="nav-item">
+              <span class="nav-icon">🛒</span>
+              Vendas
+            </a>
+            <a href="/clientes" class="nav-item">
+              <span class="nav-icon">👥</span>
+              Clientes
+            </a>
+          </div>
+
+          <div class="nav-section">
+            <div class="nav-section-title">Relatórios</div>
+            <a href="/relatorios" class="nav-item">
+              <span class="nav-icon">📊</span>
+              Relatórios
+            </a>
+            <a href="/baixas" class="nav-item">
+              <span class="nav-icon">✅</span>
+              Ordens Baixadas
+            </a>
+          </div>
+
+          <div class="nav-section">
+            <div class="nav-section-title">Sistema</div>
+            <a href="/configuracoes" class="nav-item">
+              <span class="nav-icon">⚙️</span>
+              Configurações
+            </a>
+            <a href="/" class="nav-item">
+              <span class="nav-icon">🚪</span>
+              Sair
+            </a>
+          </div>
+        </nav>
+      </aside>
+
+      <!-- Header -->
+      <header class="header">
+        <h1 class="header-title">Dashboard</h1>
+        <div class="header-right">
+          <UserButton />
+        </div>
+      </header>
+
+      <!-- Main Content -->
+      <main class="main-content">
+        <div class="welcome-section">
+          <h2 class="welcome-title">Bem-vindo ao ScarTech! 👋</h2>
+          <p class="welcome-subtitle">
+            Gerencie sua assistência técnica de forma simples e eficiente.
+          </p>
+        </div>
+
+        <div class="cards-grid">
+          <a href="/ordens" class="card blue">
+            <span class="card-icon">📋</span>
+            <h3 class="card-title">Ordens de Serviço</h3>
+            <p class="card-description">
+              Crie e gerencie ordens de serviço dos clientes
+            </p>
+          </a>
+
+          <a href="/faturamento" class="card green">
+            <span class="card-icon">💰</span>
+            <h3 class="card-title">Faturamento</h3>
+            <p class="card-description">
+              Acompanhe suas receitas e balanço mensal
+            </p>
+          </a>
+
+          <a href="/produtos" class="card yellow">
+            <span class="card-icon">📦</span>
+            <h3 class="card-title">Produtos</h3>
+            <p class="card-description">Controle de estoque e catálogo</p>
+          </a>
+
+          <a href="/vendas" class="card purple">
+            <span class="card-icon">🛒</span>
+            <h3 class="card-title">Vendas</h3>
+            <p class="card-description">
+              Registre vendas de produtos e serviços
+            </p>
+          </a>
+
+          <a href="/clientes" class="card cyan">
+            <span class="card-icon">👥</span>
+            <h3 class="card-title">Clientes</h3>
+            <p class="card-description">Cadastro e histórico de clientes</p>
+          </a>
+
+          <a href="/relatorios" class="card red">
+            <span class="card-icon">📊</span>
+            <h3 class="card-title">Relatórios</h3>
+            <p class="card-description">Análises e estatísticas do negócio</p>
+          </a>
+        </div>
+      </main>
+
+      <script>
+        const menuToggle = document.getElementById("menuToggle");
+        const sidebar = document.getElementById("sidebar");
+        const overlay = document.getElementById("sidebarOverlay");
+
+        function toggleMenu() {
+          menuToggle.classList.toggle("active");
+          sidebar.classList.toggle("open");
+          overlay.classList.toggle("visible");
+        }
+
+        menuToggle.addEventListener("click", toggleMenu);
+        overlay.addEventListener("click", toggleMenu);
+
+        // Close menu on escape key
+        document.addEventListener("keydown", (e) => {
+          if (e.key === "Escape" && sidebar.classList.contains("open")) {
+            toggleMenu();
+          }
+        });
+      </script>
+    </SignedIn>
+
+    <SignedOut>
+      <main class="login-redirect">
+        <p>Você precisa estar logado para acessar esta página.</p>
+        <a href="/" class="btn-login">Fazer Login</a>
+      </main>
+    </SignedOut>
+  </body>
+</html>
