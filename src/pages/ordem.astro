@@ -501,13 +501,21 @@ import { SignedIn, SignedOut } from '@clerk/astro/components';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
           },
           isEmpty: () => {
-            const pixelData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
-            for (let i = 0; i < pixelData.length; i += 4) {
-              if (pixelData[i] !== 255 || pixelData[i + 1] !== 255 || pixelData[i + 2] !== 255) {
-                return false;
-              }
+            // Verificar se o canvas tem dimensões válidas
+            if (canvas.width === 0 || canvas.height === 0) {
+              return true; // Canvas não inicializado = vazio
             }
-            return true;
+            try {
+              const pixelData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+              for (let i = 0; i < pixelData.length; i += 4) {
+                if (pixelData[i] !== 255 || pixelData[i + 1] !== 255 || pixelData[i + 2] !== 255) {
+                  return false;
+                }
+              }
+              return true;
+            } catch (e) {
+              return true; // Em caso de erro, considerar vazio
+            }
           },
           toDataURL: () => canvas.toDataURL('image/png')
         };
