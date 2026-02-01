@@ -8,7 +8,7 @@ import { SignedIn, SignedOut } from '@clerk/astro/components';
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Nova Ordem de Serviço - ScarTech Solutions</title>
     <link rel="icon" type="image/png" href="/logo.png" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script is:inline src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
       * { margin: 0; padding: 0; box-sizing: border-box; }
       body { font-family: 'Segoe UI', sans-serif; background: #0a0a0f; color: #e0e0e0; min-height: 100vh; }
@@ -311,7 +311,7 @@ import { SignedIn, SignedOut } from '@clerk/astro/components';
       </div>
     </SignedIn>
 
-    <script>
+    <script is:inline>
       // Toggle sidebar
       document.getElementById('toggleBtn')?.addEventListener('click', () => {
         document.getElementById('sidebar')?.classList.toggle('collapsed');
@@ -492,14 +492,15 @@ import { SignedIn, SignedOut } from '@clerk/astro/components';
       document.getElementById('ordemForm')?.addEventListener('submit', function(e) {
         e.preventDefault();
 
-        // Verificar assinatura do cliente
+        const resultDiv = document.getElementById('pdfResult');
+
+        // Verificar assinatura do cliente (opcional agora para teste)
         const signatureCliente = signaturePads['signatureCliente'];
         if (signatureCliente && signatureCliente.isEmpty()) {
-          alert('Por favor, solicite a assinatura do cliente antes de gerar a O.S.');
-          return;
+          const confirmar = confirm('A assinatura do cliente está vazia. Deseja continuar mesmo assim?');
+          if (!confirmar) return;
         }
 
-        const resultDiv = document.getElementById('pdfResult');
         resultDiv.className = 'loading';
         resultDiv.textContent = '⏳ Gerando PDF...';
 
@@ -515,6 +516,10 @@ import { SignedIn, SignedOut } from '@clerk/astro/components';
         };
 
         try {
+          // Verificar se jsPDF está carregado
+          if (!window.jspdf) {
+            throw new Error('Biblioteca jsPDF não carregou. Recarregue a página.');
+          }
           const { jsPDF } = window.jspdf;
           const doc = new jsPDF();
 
