@@ -103,7 +103,7 @@ import { SignedIn, SignedOut } from '@clerk/astro/components';
           <div class="card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
               <h2 class="card-title" style="margin-bottom: 0;">📦 Catálogo</h2>
-              <button class="btn btn-primary" onclick="abrirModal()">+ Novo Produto</button>
+              <button class="btn btn-primary" onclick="window.abrirModal()">+ Novo Produto</button>
             </div>
             
             <div class="products-grid" id="productsGrid">
@@ -128,7 +128,7 @@ import { SignedIn, SignedOut } from '@clerk/astro/components';
                     <input type="number" id="estoqueProduto" required />
                   </div>
                   <div class="modal-actions">
-                    <button type="button" class="btn" onclick="fecharModal()">Cancelar</button>
+                    <button type="button" class="btn" onclick="window.fecharModal()">Cancelar</button>
                     <button type="submit" class="btn btn-primary">Salvar</button>
                   </div>
                 </form>
@@ -159,22 +159,22 @@ import { SignedIn, SignedOut } from '@clerk/astro/components';
               <div class="product-name">${p.nome}</div>
               <div class="product-price">R$ ${p.preco.toFixed(2)}</div>
               <div class="product-stock">Estoque: ${p.estoque} unidades</div>
-              <button class="btn" style="margin-top:10px;padding:8px 12px;font-size:0.85rem;" onclick="excluirProduto(${i})">🗑️ Excluir</button>
+              <button class="btn" style="margin-top:10px;padding:8px 12px;font-size:0.85rem;" onclick="window.excluirProduto(${i})">🗑️ Excluir</button>
             </div>
           `).join('');
         }
       }
 
-      function abrirModal() {
+      window.abrirModal = function() {
         document.getElementById('modalProduto').classList.add('active');
       }
 
-      function fecharModal() {
+      window.fecharModal = function() {
         document.getElementById('modalProduto').classList.remove('active');
         document.getElementById('formProduto').reset();
       }
 
-      function excluirProduto(index) {
+      window.excluirProduto = function(index) {
         if (confirm('Excluir este produto?')) {
           produtos.splice(index, 1);
           localStorage.setItem('scartech_produtos', JSON.stringify(produtos));
@@ -191,7 +191,7 @@ import { SignedIn, SignedOut } from '@clerk/astro/components';
         };
         produtos.push(produto);
         localStorage.setItem('scartech_produtos', JSON.stringify(produtos));
-        fecharModal();
+        window.fecharModal();
         renderProdutos();
       });
 

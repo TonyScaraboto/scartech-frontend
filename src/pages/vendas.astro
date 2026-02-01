@@ -104,7 +104,7 @@ import { SignedIn, SignedOut } from '@clerk/astro/components';
           <div class="card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
               <h2 class="card-title" style="margin-bottom: 0;">🛒 Últimas Vendas</h2>
-              <button class="btn btn-primary" onclick="abrirModal()">+ Nova Venda</button>
+              <button class="btn btn-primary" onclick="window.abrirModal()">+ Nova Venda</button>
             </div>
             
             <table>
@@ -141,7 +141,7 @@ import { SignedIn, SignedOut } from '@clerk/astro/components';
                     <input type="number" id="valorVenda" step="0.01" required />
                   </div>
                   <div class="modal-actions">
-                    <button type="button" class="btn" onclick="fecharModal()">Cancelar</button>
+                    <button type="button" class="btn" onclick="window.fecharModal()">Cancelar</button>
                     <button type="submit" class="btn btn-primary">Salvar</button>
                   </div>
                 </form>
@@ -173,22 +173,22 @@ import { SignedIn, SignedOut } from '@clerk/astro/components';
               <td>${v.produto}</td>
               <td class="valor">R$ ${v.valor.toFixed(2)}</td>
               <td>${v.data}</td>
-              <td><button class="btn btn-delete" onclick="excluirVenda(${i})">🗑️</button></td>
+              <td><button class="btn btn-delete" onclick="window.excluirVenda(${i})">🗑️</button></td>
             </tr>
           `).join('');
         }
       }
 
-      function abrirModal() {
+      window.abrirModal = function() {
         document.getElementById('modalVenda').classList.add('active');
       }
 
-      function fecharModal() {
+      window.fecharModal = function() {
         document.getElementById('modalVenda').classList.remove('active');
         document.getElementById('formVenda').reset();
       }
 
-      function excluirVenda(index) {
+      window.excluirVenda = function(index) {
         if (confirm('Excluir esta venda?')) {
           vendas.splice(index, 1);
           localStorage.setItem('scartech_vendas', JSON.stringify(vendas));
@@ -206,7 +206,7 @@ import { SignedIn, SignedOut } from '@clerk/astro/components';
         };
         vendas.push(venda);
         localStorage.setItem('scartech_vendas', JSON.stringify(vendas));
-        fecharModal();
+        window.fecharModal();
         renderVendas();
       });
 

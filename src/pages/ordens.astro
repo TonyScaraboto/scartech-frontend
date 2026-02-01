@@ -106,7 +106,7 @@ import { SignedIn, SignedOut } from '@clerk/astro/components';
           <div class="card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
               <h2 class="card-title" style="margin-bottom: 0;">📋 Lista de Ordens</h2>
-              <button class="btn btn-primary" onclick="abrirModal()">+ Nova Ordem</button>
+              <button class="btn btn-primary" onclick="window.abrirModal()">+ Nova Ordem</button>
             </div>
             
             <table>
@@ -143,7 +143,7 @@ import { SignedIn, SignedOut } from '@clerk/astro/components';
                     <input type="text" id="descricaoOrdem" required />
                   </div>
                   <div class="modal-actions">
-                    <button type="button" class="btn" onclick="fecharModal()">Cancelar</button>
+                    <button type="button" class="btn" onclick="window.fecharModal()">Cancelar</button>
                     <button type="submit" class="btn btn-primary">Salvar</button>
                   </div>
                 </form>
@@ -176,30 +176,30 @@ import { SignedIn, SignedOut } from '@clerk/astro/components';
               <td><span class="status ${o.status}">${o.status === 'aberta' ? 'Aberta' : 'Concluída'}</span></td>
               <td>${o.data}</td>
               <td>
-                <button class="btn btn-status" onclick="alterarStatus(${i})">${o.status === 'aberta' ? '✓' : '↩'}</button>
-                <button class="btn btn-delete" onclick="excluirOrdem(${i})">🗑️</button>
+                <button class="btn btn-status" onclick="window.alterarStatus(${i})">${o.status === 'aberta' ? '✓' : '↩'}</button>
+                <button class="btn btn-delete" onclick="window.excluirOrdem(${i})">🗑️</button>
               </td>
             </tr>
           `).join('');
         }
       }
 
-      function abrirModal() {
+      window.abrirModal = function() {
         document.getElementById('modalOrdem').classList.add('active');
       }
 
-      function fecharModal() {
+      window.fecharModal = function() {
         document.getElementById('modalOrdem').classList.remove('active');
         document.getElementById('formOrdem').reset();
       }
 
-      function alterarStatus(index) {
+      window.alterarStatus = function(index) {
         ordens[index].status = ordens[index].status === 'aberta' ? 'concluida' : 'aberta';
         localStorage.setItem('scartech_ordens', JSON.stringify(ordens));
         renderOrdens();
       }
 
-      function excluirOrdem(index) {
+      window.excluirOrdem = function(index) {
         if (confirm('Excluir esta ordem?')) {
           ordens.splice(index, 1);
           localStorage.setItem('scartech_ordens', JSON.stringify(ordens));
@@ -218,7 +218,7 @@ import { SignedIn, SignedOut } from '@clerk/astro/components';
         };
         ordens.push(ordem);
         localStorage.setItem('scartech_ordens', JSON.stringify(ordens));
-        fecharModal();
+        window.fecharModal();
         renderOrdens();
       });
 
