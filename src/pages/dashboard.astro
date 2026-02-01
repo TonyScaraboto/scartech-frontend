@@ -6,7 +6,12 @@ import { SignedIn, SignedOut, UserButton } from "@clerk/astro/components";
   <head>
     <title>Dashboard - ScarTech</title>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="theme-color" content="#0a0a0f" />
+    <link rel="icon" type="image/png" href="/logo.png" />
     <style>
       * {
         margin: 0;
@@ -19,6 +24,14 @@ import { SignedIn, SignedOut, UserButton } from "@clerk/astro/components";
         background: #0a0a0f;
         color: #ffffff;
         min-height: 100vh;
+        min-height: -webkit-fill-available;
+        padding-top: env(safe-area-inset-top, 0);
+        padding-bottom: env(safe-area-inset-bottom, 0);
+        -webkit-tap-highlight-color: transparent;
+      }
+      
+      html {
+        height: -webkit-fill-available;
       }
 
       /* Sidebar */
@@ -374,6 +387,64 @@ import { SignedIn, SignedOut, UserButton } from "@clerk/astro/components";
       .btn-login:hover {
         box-shadow: 0 0 30px rgba(0, 212, 255, 0.5);
         transform: translateY(-2px);
+      }
+
+      /* Mobile Responsivo */
+      @media (max-width: 768px) {
+        .main-content {
+          padding: 1rem;
+          padding-top: 70px;
+        }
+        .header {
+          padding: 0.75rem 1rem;
+        }
+        .header h1 {
+          font-size: 1.2rem;
+        }
+        .cards-grid {
+          grid-template-columns: 1fr;
+          gap: 12px;
+        }
+        .card {
+          padding: 1.25rem;
+        }
+        .card-icon {
+          font-size: 2rem;
+        }
+        .card-title {
+          font-size: 1rem;
+        }
+        .card-description {
+          font-size: 0.8rem;
+        }
+        .welcome-section h2 {
+          font-size: 1.3rem;
+        }
+        .welcome-section p {
+          font-size: 0.9rem;
+        }
+        .menu-toggle {
+          top: 0.75rem;
+          left: 0.75rem;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .main-content {
+          padding: 0.75rem;
+          padding-top: 65px;
+        }
+        .header {
+          flex-direction: column;
+          gap: 0.75rem;
+          align-items: flex-start;
+        }
+        .welcome-section {
+          padding: 1.25rem;
+        }
+        .card {
+          padding: 1rem;
+        }
       }
     </style>
   </head>

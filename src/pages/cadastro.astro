@@ -5,7 +5,11 @@ import { SignUp } from "@clerk/astro/components";
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="theme-color" content="#1e88e5" />
     <title>ScarTech Solutions - Criar Conta</title>
     <style>
       * {
@@ -18,13 +22,20 @@ import { SignUp } from "@clerk/astro/components";
           -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         background: #ffffff;
         min-height: 100vh;
+        min-height: -webkit-fill-available;
         display: flex;
         align-items: center;
         justify-content: center;
+        padding: 20px;
+        padding-top: env(safe-area-inset-top, 20px);
+        padding-bottom: env(safe-area-inset-bottom, 20px);
+      }
+      html {
+        height: -webkit-fill-available;
       }
       .signup-container {
         text-align: center;
-        padding: 2rem;
+        padding: 1.5rem;
         width: 100%;
         max-width: 480px;
       }
@@ -32,7 +43,7 @@ import { SignUp } from "@clerk/astro/components";
         margin-bottom: 0.5rem;
       }
       .logo-icon {
-        width: 200px;
+        width: 150px;
         height: auto;
         margin-bottom: 1rem;
         object-fit: contain;
@@ -47,8 +58,10 @@ import { SignUp } from "@clerk/astro/components";
         border: 1px solid #e0e0e0 !important;
         border-radius: 16px !important;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08) !important;
-        padding: 2rem !important;
-        min-width: 400px !important;
+        padding: 1.5rem !important;
+        min-width: auto !important;
+        width: 100% !important;
+        max-width: 400px !important;
       }
       :global(.cl-headerTitle),
       :global(.cl-headerSubtitle) {
@@ -101,6 +114,50 @@ import { SignUp } from "@clerk/astro/components";
       :global([data-localization-key*="phone"]),
       :global(.cl-formField__phoneNumber) {
         display: none !important;
+      }
+
+      /* Responsivo Mobile */
+      @media (max-width: 480px) {
+        body {
+          padding: 15px;
+        }
+        .signup-container {
+          padding: 1rem;
+        }
+        .logo-icon {
+          width: 120px;
+        }
+        :global(.cl-card) {
+          padding: 1.25rem !important;
+          border-radius: 12px !important;
+        }
+        :global(.cl-formFieldInput) {
+          padding: 0.875rem 1rem !important;
+          font-size: 16px !important;
+        }
+        :global(.cl-formButtonPrimary) {
+          padding: 0.875rem !important;
+          font-size: 16px !important;
+        }
+      }
+
+      @media (max-width: 375px) {
+        .logo-icon {
+          width: 100px;
+        }
+        :global(.cl-card) {
+          padding: 1rem !important;
+        }
+      }
+
+      @media (max-height: 500px) and (orientation: landscape) {
+        .logo-icon {
+          width: 80px;
+          margin-bottom: 0.5rem;
+        }
+        .signup-container {
+          padding: 0.5rem;
+        }
       }
     </style>
   </head>
