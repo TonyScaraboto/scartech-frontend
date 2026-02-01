@@ -420,7 +420,10 @@ import { SignedIn, SignedOut } from '@clerk/astro/components';
 
       function initSignaturePad(canvasId) {
         const canvas = document.getElementById(canvasId);
-        if (!canvas) return;
+        if (!canvas) {
+          console.error('Canvas não encontrado:', canvasId);
+          return;
+        }
 
         const ctx = canvas.getContext('2d');
         let isDrawing = false;
@@ -430,55 +433,80 @@ import { SignedIn, SignedOut } from '@clerk/astro/components';
         // Ajustar tamanho do canvas
         function resizeCanvas() {
           const rect = canvas.getBoundingClientRect();
-          canvas.width = rect.width;
-          canvas.height = rect.height;
+          // Garantir dimensões mínimas
+          const width = rect.width > 0 ? rect.width : 300;
+          const height = rect.height > 0 ? rect.height : 150;
+          
+          // Salvar o conteúdo atual antes de redimensionar
+          const imageData = canvas.width > 0 && canvas.height > 0 ? 
+            ctx.getImageData(0, 0, canvas.width, canvas.height) : null;
+          
+          canvas.width = width;
+          canvas.height = height;
+          
+          // Preencher com branco
           ctx.fillStyle = '#ffffff';
           ctx.fillRect(0, 0, canvas.width, canvas.height);
+          
+          // Restaurar conteúdo se existia
+          if (imageData) {
+            ctx.putImageData(imageData, 0, 0);
+          }
+          
+          // Configurar estilo de desenho
           ctx.strokeStyle = '#000000';
           ctx.lineWidth = 2;
           ctx.lineCap = 'round';
           ctx.lineJoin = 'round';
         }
 
-        resizeCanvas();
+        // Inicializar após o DOM estar pronto
+        setTimeout(resizeCanvas, 100);
         window.addEventListener('resize', resizeCanvas);
 
         function getPos(e) {
           const rect = canvas.getBoundingClientRect();
-          const scaleX = canvas.width / rect.width;
-          const scaleY = canvas.height / rect.height;
-          if (e.touches) {
+          if (e.touches && e.touches.length > 0) {
             return {
-              x: (e.touches[0].clientX - rect.left) * scaleX,
-              y: (e.touches[0].clientY - rect.top) * scaleY
+              x: e.touches[0].clientX - rect.left,
+              y: e.touches[0].clientY - rect.top
             };
           }
           return {
-            x: (e.clientX - rect.left) * scaleX,
-            y: (e.clientY - rect.top) * scaleY
+            x: e.clientX - rect.left,
+            y: e.clientY - rect.top
           };
         }
 
         function startDrawing(e) {
+          e.preventDefault();
           isDrawing = true;
           const pos = getPos(e);
           lastX = pos.x;
           lastY = pos.y;
+          // Desenhar um ponto inicial
+          ctx.beginPath();
+          ctx.arc(lastX, lastY, 1, 0, Math.PI * 2);
+          ctx.fill();
         }
 
         function draw(e) {
           if (!isDrawing) return;
           e.preventDefault();
+          
           const pos = getPos(e);
+          
           ctx.beginPath();
           ctx.moveTo(lastX, lastY);
           ctx.lineTo(pos.x, pos.y);
           ctx.stroke();
+          
           lastX = pos.x;
           lastY = pos.y;
         }
 
-        function stopDrawing() {
+        function stopDrawing(e) {
+          if (e) e.preventDefault();
           isDrawing = false;
         }
 
@@ -488,10 +516,10 @@ import { SignedIn, SignedOut } from '@clerk/astro/components';
         canvas.addEventListener('mouseup', stopDrawing);
         canvas.addEventListener('mouseout', stopDrawing);
 
-        // Touch events
-        canvas.addEventListener('touchstart', startDrawing);
-        canvas.addEventListener('touchmove', draw);
-        canvas.addEventListener('touchend', stopDrawing);
+        // Touch events - passive: false para permitir preventDefault
+        canvas.addEventListener('touchstart', startDrawing, { passive: false });
+        canvas.addEventListener('touchmove', draw, { passive: false });
+        canvas.addEventListener('touchend', stopDrawing, { passive: false });
 
         signaturePads[canvasId] = {
           canvas,
