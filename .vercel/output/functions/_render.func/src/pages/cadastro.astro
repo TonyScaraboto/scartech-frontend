@@ -1,0 +1,271 @@
+---
+import { SignUp } from "@clerk/astro/components";
+---
+
+<html lang="pt-BR" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="theme-color" content="#1e88e5" />
+    <title>ScarTech Solutions - Criar Conta</title>
+    <style>
+      /* CSS Variables para Temas */
+      :root {
+        --bg-primary: #0a0a0f;
+        --bg-secondary: #12121a;
+        --bg-card: linear-gradient(145deg, #12121a 0%, #1a1a2e 100%);
+        --text-primary: #ffffff;
+        --text-secondary: #e0e0e0;
+        --text-muted: #6b7280;
+        --border-color: rgba(0, 255, 255, 0.1);
+        --accent-color: #00ffff;
+        --accent-secondary: #00ff88;
+        --shadow-color: rgba(0, 212, 255, 0.2);
+      }
+
+      [data-theme="light"] {
+        --bg-primary: #f5f5f5;
+        --bg-secondary: #ffffff;
+        --bg-card: linear-gradient(145deg, #ffffff 0%, #f0f0f0 100%);
+        --text-primary: #1a1a2e;
+        --text-secondary: #4a4a5a;
+        --text-muted: #6b7280;
+        --border-color: rgba(0, 150, 200, 0.2);
+        --accent-color: #0088aa;
+        --accent-secondary: #00aa66;
+        --shadow-color: rgba(0, 0, 0, 0.1);
+      }
+
+      /* Theme Toggle Button */
+      .theme-toggle {
+        position: fixed;
+        top: 15px;
+        right: 15px;
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1001;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 10px var(--shadow-color);
+      }
+      .theme-toggle:hover {
+        transform: scale(1.1);
+        box-shadow: 0 4px 20px var(--shadow-color);
+      }
+      .theme-icon {
+        font-size: 1.3rem;
+        line-height: 1;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background: var(--bg-primary);
+        color: var(--text-secondary);
+        transition: background 0.3s ease, color 0.3s ease;
+        min-height: 100vh;
+        min-height: -webkit-fill-available;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        padding-top: env(safe-area-inset-top, 20px);
+        padding-bottom: env(safe-area-inset-bottom, 20px);
+      }
+      html {
+        height: -webkit-fill-available;
+      }
+      .signup-container {
+        text-align: center;
+        padding: 1.5rem;
+        width: 100%;
+        max-width: 480px;
+      }
+      .logo-container {
+        margin-bottom: 0.5rem;
+      }
+      .logo-icon {
+        width: 150px;
+        height: auto;
+        margin-bottom: 1rem;
+        object-fit: contain;
+      }
+
+      /* Customização do Clerk SignUp */
+      :global(.cl-rootBox) {
+        width: 100%;
+      }
+      :global(.cl-card) {
+        background: var(--bg-card) !important;
+        border: 1px solid var(--border-color) !important;
+        border-radius: 16px !important;
+        box-shadow: 0 4px 20px var(--shadow-color) !important;
+        padding: 1.5rem !important;
+        min-width: auto !important;
+        width: 100% !important;
+        max-width: 400px !important;
+      }
+      :global(.cl-headerTitle),
+      :global(.cl-headerSubtitle) {
+        display: none !important;
+      }
+      :global(.cl-formFieldLabel) {
+        color: #333333 !important;
+        font-weight: 500 !important;
+      }
+      :global(.cl-formFieldInput) {
+        background: #f8f9fa !important;
+        border: 1px solid #e0e0e0 !important;
+        border-radius: 10px !important;
+        color: #333333 !important;
+        padding: 1rem 1.25rem !important;
+      }
+      :global(.cl-formFieldInput:focus) {
+        border-color: #1e88e5 !important;
+        box-shadow: 0 0 0 3px rgba(30, 136, 229, 0.15) !important;
+      }
+      :global(.cl-formButtonPrimary) {
+        background: linear-gradient(
+          135deg,
+          #1e88e5 0%,
+          #1565c0 100%
+        ) !important;
+        border: none !important;
+        border-radius: 10px !important;
+        padding: 1rem !important;
+        font-weight: 600 !important;
+      }
+      :global(.cl-formButtonPrimary:hover) {
+        background: linear-gradient(
+          135deg,
+          #42a5f5 0%,
+          #1e88e5 100%
+        ) !important;
+      }
+      :global(.cl-footerActionLink) {
+        color: #1e88e5 !important;
+      }
+      :global(.cl-footerActionText) {
+        color: #666666 !important;
+      }
+      /* Esconder login social e campos de telefone */
+      :global(.cl-socialButtons),
+      :global(.cl-socialButtonsBlockButton),
+      :global(.cl-dividerRow),
+      :global(.cl-formFieldRow__phoneNumber),
+      :global([data-localization-key*="phone"]),
+      :global(.cl-formField__phoneNumber) {
+        display: none !important;
+      }
+
+      /* Responsivo Mobile */
+      @media (max-width: 480px) {
+        body {
+          padding: 15px;
+        }
+        .signup-container {
+          padding: 1rem;
+        }
+        .logo-icon {
+          width: 120px;
+        }
+        :global(.cl-card) {
+          padding: 1.25rem !important;
+          border-radius: 12px !important;
+        }
+        :global(.cl-formFieldInput) {
+          padding: 0.875rem 1rem !important;
+          font-size: 16px !important;
+        }
+        :global(.cl-formButtonPrimary) {
+          padding: 0.875rem !important;
+          font-size: 16px !important;
+        }
+      }
+
+      @media (max-width: 375px) {
+        .logo-icon {
+          width: 100px;
+        }
+        :global(.cl-card) {
+          padding: 1rem !important;
+        }
+      }
+
+      @media (max-height: 500px) and (orientation: landscape) {
+        .logo-icon {
+          width: 80px;
+          margin-bottom: 0.5rem;
+        }
+        .signup-container {
+          padding: 0.5rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Theme Toggle Button -->
+    <button class="theme-toggle" id="themeToggle" title="Alternar tema">
+      <span class="theme-icon">🌙</span>
+    </button>
+
+    <div class="signup-container">
+      <div class="logo-container">
+        <img src="/logo.png" alt="ScarTech Solutions" class="logo-icon" />
+      </div>
+
+      <SignUp routing="path" path="/cadastro" signInUrl="/" />
+    </div>
+
+    <script is:inline>
+    // Theme management
+    (function() {
+      const themeToggle = document.getElementById("themeToggle");
+      const themeIcon = themeToggle?.querySelector(".theme-icon");
+      
+      function initTheme() {
+        const savedTheme = localStorage.getItem("scartech_theme");
+        const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+        const theme = savedTheme || (prefersDark ? "dark" : "light");
+        document.documentElement.setAttribute("data-theme", theme);
+        updateThemeIcon(theme);
+      }
+      
+      function updateThemeIcon(theme) {
+        if (themeIcon) themeIcon.textContent = theme === "dark" ? "☀️" : "🌙";
+      }
+      
+      function toggleTheme() {
+        const currentTheme = document.documentElement.getAttribute("data-theme");
+        const newTheme = currentTheme === "dark" ? "light" : "dark";
+        document.documentElement.setAttribute("data-theme", newTheme);
+        localStorage.setItem("scartech_theme", newTheme);
+        updateThemeIcon(newTheme);
+      }
+      
+      themeToggle?.addEventListener("click", toggleTheme);
+      initTheme();
+    })();
+    </script>
+  </body>
+</html>

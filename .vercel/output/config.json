@@ -1,0 +1,59 @@
+{
+	"version": 3,
+	"routes": [
+		{
+			"handle": "filesystem"
+		},
+		{
+			"src": "^/_astro/(.*)$",
+			"headers": {
+				"cache-control": "public, max-age=31536000, immutable"
+			},
+			"continue": true
+		},
+		{
+			"src": "^/_server-islands/([^/]+?)/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/_image/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/cadastro/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/dashboard/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/faturamento/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/ordem/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/ordens/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/produtos/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/sso-callback/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/vendas/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/$",
+			"dest": "_render"
+		}
+	]
+}
