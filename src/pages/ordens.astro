@@ -437,42 +437,87 @@ import { SignedIn, SignedOut } from "@clerk/astro/components";
         }
         .main-content {
           padding: 15px;
+          padding-top: 75px;
+        }
+        .page-header {
+          margin-bottom: 20px;
         }
         .page-title {
-          font-size: 1.4rem;
+          font-size: 1.3rem;
+        }
+        .page-subtitle {
+          font-size: 0.85rem;
         }
         .card {
           padding: 15px;
+          border-radius: 10px;
+        }
+        .card-title {
+          font-size: 1rem;
         }
         table {
-          font-size: 0.85rem;
+          font-size: 0.8rem;
         }
-        th,
-        td {
-          padding: 8px 6px;
+        th, td {
+          padding: 10px 8px;
         }
         .btn {
-          padding: 10px 16px;
-          font-size: 0.9rem;
+          padding: 10px 14px;
+          font-size: 0.85rem;
+        }
+        .btn-primary {
+          padding: 12px 18px;
         }
         .modal-content {
-          margin: 15px;
-          max-width: calc(100% - 30px);
+          margin: 10px;
+          max-width: calc(100% - 20px);
+          padding: 20px;
+        }
+        .modal-content h3 {
+          font-size: 1.1rem;
+        }
+        .actions-cell {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 5px;
+        }
+        .btn-view, .btn-edit, .btn-status, .btn-delete {
+          padding: 6px 8px;
+          font-size: 0.75rem;
         }
       }
 
       @media (max-width: 480px) {
         .main-content {
           padding: 10px;
+          padding-top: 70px;
+        }
+        .page-title {
+          font-size: 1.2rem;
         }
         table {
           display: block;
           overflow-x: auto;
           white-space: nowrap;
+          -webkit-overflow-scrolling: touch;
         }
         .form-group input,
         .form-group select {
           font-size: 16px;
+          padding: 12px;
+        }
+        .form-group label {
+          font-size: 0.85rem;
+        }
+        .card {
+          padding: 12px;
+        }
+        .modal-actions {
+          flex-direction: column;
+        }
+        .modal-actions .btn {
+          width: 100%;
+          justify-content: center;
         }
       }
     </style>

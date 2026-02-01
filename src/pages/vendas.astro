@@ -459,28 +459,93 @@ import { SignedIn, SignedOut } from "@clerk/astro/components";
         }
         .main-content {
           padding: 15px;
-          padding-top: 70px;
+          padding-top: 75px;
+        }
+        .page-header {
+          margin-bottom: 20px;
+        }
+        .page-title {
+          font-size: 1.3rem;
+        }
+        .page-subtitle {
+          font-size: 0.85rem;
         }
         .stats-grid {
           grid-template-columns: repeat(2, 1fr);
+          gap: 10px;
+        }
+        .stat-card {
+          padding: 14px;
+        }
+        .stat-icon {
+          font-size: 1.5rem;
+        }
+        .stat-value {
+          font-size: 1.3rem;
+        }
+        .stat-label {
+          font-size: 0.75rem;
+        }
+        .card {
+          padding: 15px;
+          border-radius: 10px;
         }
         table {
-          font-size: 0.85rem;
+          font-size: 0.8rem;
           display: block;
           overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
+        }
+        th, td {
+          padding: 10px 8px;
+        }
+        .btn {
+          padding: 10px 14px;
+          font-size: 0.85rem;
+        }
+        .modal-content {
+          margin: 10px;
+          max-width: calc(100% - 20px);
+          padding: 20px;
+        }
+        .actions-cell {
+          display: flex;
+          gap: 5px;
         }
       }
 
       @media (max-width: 480px) {
+        .main-content {
+          padding: 10px;
+          padding-top: 70px;
+        }
         .stats-grid {
           grid-template-columns: 1fr 1fr;
-          gap: 10px;
+          gap: 8px;
         }
         .stat-card {
           padding: 12px;
         }
+        .stat-icon {
+          font-size: 1.3rem;
+          margin-bottom: 5px;
+        }
         .stat-value {
-          font-size: 1.2rem;
+          font-size: 1.1rem;
+        }
+        .stat-label {
+          font-size: 0.7rem;
+        }
+        .form-group input, .form-group select {
+          font-size: 16px;
+          padding: 12px;
+        }
+        .modal-actions {
+          flex-direction: column;
+        }
+        .modal-actions .btn {
+          width: 100%;
+          justify-content: center;
         }
       }
     </style>

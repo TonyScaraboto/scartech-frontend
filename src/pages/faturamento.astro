@@ -445,47 +445,107 @@ import { SignedIn, SignedOut } from "@clerk/astro/components";
         }
         .main-content {
           padding: 15px;
-          padding-top: 70px;
+          padding-top: 75px;
+        }
+        .page-header {
+          margin-bottom: 20px;
+        }
+        .page-title {
+          font-size: 1.3rem;
+        }
+        .page-subtitle {
+          font-size: 0.85rem;
         }
         .charts-grid {
           grid-template-columns: 1fr;
+          gap: 15px;
         }
         .stats-grid {
           grid-template-columns: repeat(2, 1fr);
+          gap: 10px;
+        }
+        .stat-card {
+          padding: 14px;
+        }
+        .stat-icon {
+          font-size: 1.5rem;
+        }
+        .stat-value {
+          font-size: 1.3rem;
+        }
+        .stat-label {
+          font-size: 0.75rem;
         }
         .tabs {
-          flex-wrap: wrap;
+          flex-wrap: nowrap;
+          overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
+          gap: 5px;
+          padding-bottom: 5px;
         }
         .tab {
-          flex: 1;
-          min-width: 100px;
+          flex: 0 0 auto;
+          min-width: auto;
           text-align: center;
-          font-size: 0.85rem;
-          padding: 8px 12px;
+          font-size: 0.8rem;
+          padding: 10px 14px;
+          white-space: nowrap;
+        }
+        .card {
+          padding: 15px;
+          border-radius: 10px;
+        }
+        .card-title {
+          font-size: 1rem;
         }
         table {
-          font-size: 0.85rem;
+          font-size: 0.8rem;
           display: block;
           overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
+        }
+        th, td {
+          padding: 10px 8px;
         }
       }
 
       @media (max-width: 480px) {
+        .main-content {
+          padding: 10px;
+          padding-top: 70px;
+        }
         .stats-grid {
           grid-template-columns: 1fr 1fr;
-          gap: 10px;
+          gap: 8px;
         }
         .stat-card {
           padding: 12px;
         }
+        .stat-icon {
+          font-size: 1.3rem;
+          margin-bottom: 5px;
+        }
         .stat-value {
-          font-size: 1.2rem;
+          font-size: 1.1rem;
+        }
+        .stat-label {
+          font-size: 0.7rem;
         }
         .chart-container {
-          height: 200px;
+          height: 180px;
         }
         .charts-grid {
-          gap: 15px;
+          gap: 12px;
+        }
+        .chart-card {
+          padding: 12px;
+        }
+        .chart-title {
+          font-size: 0.9rem;
+        }
+        .tab {
+          font-size: 0.75rem;
+          padding: 8px 12px;
         }
       }
     </style>

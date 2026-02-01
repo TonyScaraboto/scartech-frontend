@@ -392,16 +392,82 @@ import { SignedIn, SignedOut } from "@clerk/astro/components";
         }
         .main-content {
           padding: 15px;
-          padding-top: 70px;
+          padding-top: 75px;
+        }
+        .page-header {
+          margin-bottom: 20px;
+        }
+        .page-title {
+          font-size: 1.3rem;
+        }
+        .page-subtitle {
+          font-size: 0.85rem;
+        }
+        .card {
+          padding: 15px;
+          border-radius: 10px;
+        }
+        .card-title {
+          font-size: 1rem;
         }
         .products-grid {
-          grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+          grid-template-columns: repeat(2, 1fr);
+          gap: 12px;
+        }
+        .product-card {
+          padding: 15px;
+        }
+        .product-name {
+          font-size: 1rem;
+        }
+        .product-price {
+          font-size: 1.1rem;
+        }
+        .product-stock {
+          font-size: 0.8rem;
+        }
+        .btn {
+          padding: 10px 14px;
+          font-size: 0.85rem;
+        }
+        .modal-content {
+          margin: 10px;
+          max-width: calc(100% - 20px);
+          padding: 20px;
         }
       }
 
       @media (max-width: 480px) {
+        .main-content {
+          padding: 10px;
+          padding-top: 70px;
+        }
         .products-grid {
-          grid-template-columns: 1fr;
+          grid-template-columns: 1fr 1fr;
+          gap: 10px;
+        }
+        .product-card {
+          padding: 12px;
+        }
+        .product-name {
+          font-size: 0.9rem;
+        }
+        .product-price {
+          font-size: 1rem;
+        }
+        .product-stock {
+          font-size: 0.75rem;
+        }
+        .form-group input {
+          font-size: 16px;
+          padding: 12px;
+        }
+        .modal-actions {
+          flex-direction: column;
+        }
+        .modal-actions .btn {
+          width: 100%;
+          justify-content: center;
         }
       }
     </style>

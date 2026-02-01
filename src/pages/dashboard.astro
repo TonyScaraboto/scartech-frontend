@@ -399,35 +399,40 @@ import { SignedIn, SignedOut, UserButton } from "@clerk/astro/components";
       @media (max-width: 768px) {
         .main-content {
           padding: 1rem;
-          padding-top: 70px;
+          padding-top: 75px;
         }
         .header {
           padding: 0.75rem 1rem;
+          margin-bottom: 1rem;
         }
         .header h1 {
           font-size: 1.2rem;
         }
         .cards-grid {
-          grid-template-columns: 1fr;
+          grid-template-columns: repeat(2, 1fr);
           gap: 12px;
         }
         .card {
           padding: 1.25rem;
         }
         .card-icon {
-          font-size: 2rem;
+          font-size: 1.8rem;
         }
         .card-title {
-          font-size: 1rem;
+          font-size: 0.95rem;
         }
         .card-description {
-          font-size: 0.8rem;
+          font-size: 0.75rem;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
         }
         .welcome-section h2 {
-          font-size: 1.3rem;
+          font-size: 1.2rem;
         }
         .welcome-section p {
-          font-size: 0.9rem;
+          font-size: 0.85rem;
         }
         .menu-toggle {
           top: 0.75rem;
@@ -438,7 +443,7 @@ import { SignedIn, SignedOut, UserButton } from "@clerk/astro/components";
       @media (max-width: 480px) {
         .main-content {
           padding: 0.75rem;
-          padding-top: 65px;
+          padding-top: 70px;
         }
         .header {
           flex-direction: column;
@@ -446,10 +451,30 @@ import { SignedIn, SignedOut, UserButton } from "@clerk/astro/components";
           align-items: flex-start;
         }
         .welcome-section {
-          padding: 1.25rem;
+          padding: 1rem;
+        }
+        .welcome-section h2 {
+          font-size: 1.1rem;
+        }
+        .welcome-section p {
+          font-size: 0.8rem;
+        }
+        .cards-grid {
+          grid-template-columns: 1fr 1fr;
+          gap: 10px;
         }
         .card {
-          padding: 1rem;
+          padding: 0.875rem;
+        }
+        .card-icon {
+          font-size: 1.5rem;
+        }
+        .card-title {
+          font-size: 0.85rem;
+        }
+        .card-description {
+          font-size: 0.7rem;
+          -webkit-line-clamp: 1;
         }
       }
     </style>
