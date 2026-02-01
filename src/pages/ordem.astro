@@ -1,0 +1,737 @@
+---
+import { SignedIn, SignedOut } from '@clerk/astro/components';
+---
+
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nova Ordem de Serviço - ScarTech Solutions</title>
+    <link rel="icon" type="image/png" href="/logo.png" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font-family: 'Segoe UI', sans-serif; background: #0a0a0f; color: #e0e0e0; min-height: 100vh; }
+      .layout { display: flex; min-height: 100vh; }
+      .sidebar { width: 260px; background: linear-gradient(180deg, #0d0d12 0%, #12121a 100%); border-right: 1px solid rgba(0, 255, 255, 0.1); padding: 20px 0; display: flex; flex-direction: column; transition: width 0.3s ease; position: relative; }
+      .sidebar.collapsed { width: 70px; }
+      .sidebar-header { padding: 0 20px 20px; border-bottom: 1px solid rgba(0, 255, 255, 0.1); display: flex; align-items: center; gap: 12px; }
+      .sidebar.collapsed .sidebar-header { justify-content: center; padding: 0 10px 20px; }
+      .logo-img { width: 40px; height: 40px; border-radius: 8px; }
+      .logo-text { font-size: 1.2rem; font-weight: 700; color: #00ffff; white-space: nowrap; }
+      .sidebar.collapsed .logo-text { display: none; }
+      .toggle-btn { position: absolute; top: 20px; right: -15px; width: 30px; height: 30px; background: #1a1a2e; border: 1px solid rgba(0, 255, 255, 0.3); border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #00ffff; transition: all 0.3s ease; z-index: 10; }
+      .toggle-btn:hover { background: rgba(0, 255, 255, 0.2); box-shadow: 0 0 15px rgba(0, 255, 255, 0.4); }
+      .hamburger { display: flex; flex-direction: column; gap: 3px; }
+      .hamburger span { display: block; width: 14px; height: 2px; background: #00ffff; }
+      .nav-section { padding: 20px 0; }
+      .nav-title { font-size: 0.7rem; text-transform: uppercase; color: #666; padding: 0 20px; margin-bottom: 10px; letter-spacing: 1px; }
+      .sidebar.collapsed .nav-title { display: none; }
+      .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 20px; color: #a0a0a0; text-decoration: none; transition: all 0.3s ease; border-left: 3px solid transparent; }
+      .sidebar.collapsed .nav-item { justify-content: center; padding: 12px 10px; }
+      .nav-item:hover { background: rgba(0, 255, 255, 0.05); color: #00ffff; border-left-color: #00ffff; box-shadow: inset 0 0 20px rgba(0, 255, 255, 0.1); }
+      .nav-item.active { background: rgba(0, 255, 255, 0.1); color: #00ffff; border-left-color: #00ffff; }
+      .nav-icon { font-size: 1.2rem; width: 24px; text-align: center; }
+      .nav-text { white-space: nowrap; }
+      .sidebar.collapsed .nav-text { display: none; }
+      .main-content { flex: 1; padding: 30px; overflow-y: auto; }
+      .page-header { margin-bottom: 30px; }
+      .page-title { font-size: 1.8rem; color: #fff; margin-bottom: 5px; }
+      .page-subtitle { color: #666; }
+      .card { background: linear-gradient(145deg, #12121a 0%, #1a1a2e 100%); border: 1px solid rgba(0, 255, 255, 0.1); border-radius: 12px; padding: 30px; }
+      
+      .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+      .form-group { display: flex; flex-direction: column; gap: 8px; }
+      .form-group.full { grid-column: 1 / -1; }
+      .form-group label { color: #a0a0a0; font-size: 0.9rem; }
+      .form-group label span { color: #00ffff; }
+      .form-group input, .form-group textarea { 
+        padding: 12px 15px; 
+        background: rgba(0, 0, 0, 0.3); 
+        border: 1px solid rgba(0, 255, 255, 0.2); 
+        border-radius: 8px; 
+        color: #fff; 
+        font-size: 1rem;
+        transition: all 0.3s ease;
+      }
+      .form-group input:focus, .form-group textarea:focus { 
+        outline: none; 
+        border-color: #00ffff;
+        box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
+      }
+      .form-group textarea { min-height: 80px; resize: vertical; }
+      
+      /* Upload de foto */
+      .photo-upload-area {
+        border: 2px dashed rgba(0, 255, 255, 0.3);
+        border-radius: 12px;
+        padding: 30px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: rgba(0, 0, 0, 0.2);
+      }
+      .photo-upload-area:hover {
+        border-color: #00ffff;
+        background: rgba(0, 255, 255, 0.05);
+      }
+      .photo-upload-area.has-image {
+        padding: 10px;
+      }
+      .photo-upload-area input[type="file"] { display: none; }
+      .photo-upload-icon { font-size: 3rem; margin-bottom: 10px; }
+      .photo-upload-text { color: #a0a0a0; font-size: 0.9rem; }
+      .photo-preview { max-width: 100%; max-height: 200px; border-radius: 8px; display: none; }
+      .photo-preview.visible { display: block; margin: 0 auto; }
+      .photo-actions { margin-top: 10px; display: none; }
+      .photo-actions.visible { display: flex; justify-content: center; gap: 10px; }
+      .btn-small { padding: 6px 12px; font-size: 0.85rem; }
+      
+      /* Área de assinatura digital */
+      .signature-section {
+        margin-top: 30px;
+        padding-top: 20px;
+        border-top: 1px dashed rgba(0, 255, 255, 0.3);
+      }
+      .signature-section h3 {
+        color: #00ffff;
+        font-size: 1.1rem;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .signatures-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+      }
+      .signature-pad-container {
+        background: rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(0, 255, 255, 0.2);
+        border-radius: 12px;
+        padding: 15px;
+      }
+      .signature-pad-container label {
+        display: block;
+        color: #a0a0a0;
+        font-size: 0.9rem;
+        margin-bottom: 10px;
+      }
+      .signature-canvas {
+        width: 100%;
+        height: 150px;
+        background: #fff;
+        border-radius: 8px;
+        cursor: crosshair;
+        touch-action: none;
+      }
+      .signature-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 10px;
+      }
+      
+      .signatures { 
+        display: grid; 
+        grid-template-columns: 1fr 1fr; 
+        gap: 40px; 
+        margin-top: 30px; 
+        padding-top: 20px; 
+        border-top: 1px dashed rgba(0, 255, 255, 0.3); 
+      }
+      .signature-box { text-align: center; }
+      .signature-box span { font-size: 0.9rem; color: #666; }
+      .signature-line { margin-top: 40px; border-bottom: 1px solid #00ffff; }
+      
+      .form-actions { 
+        display: flex; 
+        gap: 15px; 
+        justify-content: flex-end; 
+        margin-top: 30px; 
+        padding-top: 20px;
+        border-top: 1px solid rgba(0, 255, 255, 0.1);
+      }
+      
+      .btn { 
+        display: inline-flex; 
+        align-items: center; 
+        gap: 8px; 
+        padding: 12px 24px; 
+        background: linear-gradient(135deg, rgba(0, 255, 255, 0.1) 0%, rgba(0, 255, 255, 0.05) 100%); 
+        border: 1px solid rgba(0, 255, 255, 0.3); 
+        color: #00ffff; 
+        text-decoration: none; 
+        border-radius: 8px; 
+        transition: all 0.3s ease; 
+        cursor: pointer; 
+        font-size: 1rem; 
+      }
+      .btn:hover { background: rgba(0, 255, 255, 0.2); box-shadow: 0 0 20px rgba(0, 255, 255, 0.3); transform: translateY(-2px); }
+      .btn-primary { background: linear-gradient(135deg, #00ffff 0%, #00cccc 100%); color: #000; border: none; font-weight: 600; }
+      .btn-primary:hover { box-shadow: 0 0 30px rgba(0, 255, 255, 0.5); }
+      
+      #pdfResult { 
+        margin-top: 15px; 
+        padding: 15px; 
+        border-radius: 8px; 
+        font-weight: 600; 
+        text-align: center;
+        display: none;
+      }
+      #pdfResult.success { background: rgba(0, 255, 0, 0.1); color: #00ff88; display: block; }
+      #pdfResult.error { background: rgba(255, 0, 0, 0.1); color: #ff6b6b; display: block; }
+      #pdfResult.loading { background: rgba(0, 255, 255, 0.1); color: #00ffff; display: block; }
+
+      .not-signed-in { display: flex; align-items: center; justify-content: center; min-height: 100vh; flex-direction: column; gap: 20px; }
+      .login-btn { padding: 12px 30px; background: linear-gradient(135deg, #00ffff 0%, #00cccc 100%); color: #000; text-decoration: none; border-radius: 8px; font-weight: 600; }
+    </style>
+  </head>
+  <body>
+    <SignedOut>
+      <div class="not-signed-in">
+        <h2>Acesso Restrito</h2>
+        <a href="/" class="login-btn">Fazer Login</a>
+      </div>
+    </SignedOut>
+
+    <SignedIn>
+      <div class="layout">
+        <aside class="sidebar" id="sidebar">
+          <button class="toggle-btn" id="toggleBtn">
+            <div class="hamburger"><span></span><span></span><span></span></div>
+          </button>
+          <div class="sidebar-header">
+            <img src="/logo.png" alt="ScarTech" class="logo-img" />
+            <span class="logo-text">ScarTech</span>
+          </div>
+          <nav class="nav-section">
+            <div class="nav-title">Principal</div>
+            <a href="/dashboard" class="nav-item"><span class="nav-icon">🏠</span><span class="nav-text">Dashboard</span></a>
+            <a href="/faturamento" class="nav-item"><span class="nav-icon">💰</span><span class="nav-text">Faturamento</span></a>
+          </nav>
+          <nav class="nav-section">
+            <div class="nav-title">Gestão</div>
+            <a href="/ordens" class="nav-item active"><span class="nav-icon">📋</span><span class="nav-text">Ordens de Serviço</span></a>
+            <a href="/produtos" class="nav-item"><span class="nav-icon">📦</span><span class="nav-text">Produtos</span></a>
+            <a href="/vendas" class="nav-item"><span class="nav-icon">🛒</span><span class="nav-text">Vendas</span></a>
+          </nav>
+        </aside>
+
+        <main class="main-content">
+          <div class="page-header">
+            <h1 class="page-title">📝 Nova Ordem de Serviço</h1>
+            <p class="page-subtitle">Preencha os dados para gerar a ordem de serviço</p>
+          </div>
+
+          <div class="card">
+            <form id="ordemForm" autocomplete="off">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label>Nome do Cliente <span>*</span></label>
+                  <input type="text" id="nomeCliente" required placeholder="Ex: João da Silva" />
+                </div>
+                <div class="form-group">
+                  <label>Documento (CPF/RG) <span>*</span></label>
+                  <input type="text" id="documentoCliente" required placeholder="000.000.000-00" />
+                </div>
+                <div class="form-group">
+                  <label>Telefone <span>*</span></label>
+                  <input type="text" id="telefoneCliente" required placeholder="(00) 00000-0000" />
+                </div>
+                <div class="form-group">
+                  <label>Modelo do Aparelho <span>*</span></label>
+                  <input type="text" id="modeloAparelho" required placeholder="Ex: iPhone 13 Pro" />
+                </div>
+                <div class="form-group full">
+                  <label>Defeito Apresentado <span>*</span></label>
+                  <input type="text" id="defeitoApresentado" required placeholder="Descreva o problema do aparelho" />
+                </div>
+                <div class="form-group full">
+                  <label>Termo de Garantia <span>*</span></label>
+                  <textarea id="termoGarantia" required>Garantia de 90 dias para o serviço realizado, conforme legislação vigente. A garantia não cobre danos causados por mau uso, quedas, contato com líquidos ou tentativa de reparo por terceiros.</textarea>
+                </div>
+                <div class="form-group">
+                  <label>Valor do Conserto (R$) <span>*</span></label>
+                  <input type="number" id="valorConserto" step="0.01" required placeholder="0.00" />
+                </div>
+                <div class="form-group">
+                  <label>Previsão de Entrega</label>
+                  <input type="date" id="previsaoEntrega" />
+                </div>
+
+                <!-- Upload de Foto do Aparelho -->
+                <div class="form-group full">
+                  <label>📷 Foto do Aparelho</label>
+                  <div class="photo-upload-area" id="photoUploadArea">
+                    <input type="file" id="fotoAparelho" accept="image/*" />
+                    <div id="uploadPlaceholder">
+                      <div class="photo-upload-icon">📸</div>
+                      <p class="photo-upload-text">Clique ou arraste uma foto do aparelho aqui</p>
+                    </div>
+                    <img id="photoPreview" class="photo-preview" alt="Preview da foto" />
+                    <div id="photoActions" class="photo-actions">
+                      <button type="button" class="btn btn-small" onclick="window.removerFoto()">🗑️ Remover</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Seção de Assinaturas Digitais -->
+              <div class="signature-section">
+                <h3>✍️ Assinaturas Digitais</h3>
+                <div class="signatures-grid">
+                  <div class="signature-pad-container">
+                    <label>Assinatura do Técnico</label>
+                    <canvas id="signatureTecnico" class="signature-canvas"></canvas>
+                    <div class="signature-actions">
+                      <button type="button" class="btn btn-small" onclick="window.limparAssinatura('Tecnico')">🗑️ Limpar</button>
+                    </div>
+                  </div>
+                  <div class="signature-pad-container">
+                    <label>Assinatura do Cliente <span>*</span></label>
+                    <canvas id="signatureCliente" class="signature-canvas"></canvas>
+                    <div class="signature-actions">
+                      <button type="button" class="btn btn-small" onclick="window.limparAssinatura('Cliente')">🗑️ Limpar</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-actions">
+                <a href="/ordens" class="btn">← Voltar</a>
+                <button type="submit" class="btn btn-primary">📄 Gerar PDF</button>
+              </div>
+            </form>
+
+            <div id="pdfResult"></div>
+          </div>
+        </main>
+      </div>
+    </SignedIn>
+
+    <script>
+      // Toggle sidebar
+      document.getElementById('toggleBtn')?.addEventListener('click', () => {
+        document.getElementById('sidebar')?.classList.toggle('collapsed');
+      });
+
+      // ========== UPLOAD DE FOTO ==========
+      let fotoDataURL = null;
+      const photoUploadArea = document.getElementById('photoUploadArea');
+      const fotoInput = document.getElementById('fotoAparelho');
+      const photoPreview = document.getElementById('photoPreview');
+      const photoActions = document.getElementById('photoActions');
+      const uploadPlaceholder = document.getElementById('uploadPlaceholder');
+
+      // Click para selecionar foto
+      photoUploadArea?.addEventListener('click', (e) => {
+        if (e.target.tagName !== 'BUTTON') {
+          fotoInput?.click();
+        }
+      });
+
+      // Drag and drop
+      photoUploadArea?.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        photoUploadArea.style.borderColor = '#00ffff';
+        photoUploadArea.style.background = 'rgba(0, 255, 255, 0.1)';
+      });
+
+      photoUploadArea?.addEventListener('dragleave', () => {
+        photoUploadArea.style.borderColor = 'rgba(0, 255, 255, 0.3)';
+        photoUploadArea.style.background = 'rgba(0, 0, 0, 0.2)';
+      });
+
+      photoUploadArea?.addEventListener('drop', (e) => {
+        e.preventDefault();
+        photoUploadArea.style.borderColor = 'rgba(0, 255, 255, 0.3)';
+        photoUploadArea.style.background = 'rgba(0, 0, 0, 0.2)';
+        const file = e.dataTransfer.files[0];
+        if (file && file.type.startsWith('image/')) {
+          processarFoto(file);
+        }
+      });
+
+      fotoInput?.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) processarFoto(file);
+      });
+
+      function processarFoto(file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          fotoDataURL = e.target.result;
+          photoPreview.src = fotoDataURL;
+          photoPreview.classList.add('visible');
+          photoActions.classList.add('visible');
+          uploadPlaceholder.style.display = 'none';
+          photoUploadArea.classList.add('has-image');
+        };
+        reader.readAsDataURL(file);
+      }
+
+      window.removerFoto = function() {
+        fotoDataURL = null;
+        photoPreview.src = '';
+        photoPreview.classList.remove('visible');
+        photoActions.classList.remove('visible');
+        uploadPlaceholder.style.display = 'block';
+        photoUploadArea.classList.remove('has-image');
+        fotoInput.value = '';
+      };
+
+      // ========== ASSINATURA DIGITAL ==========
+      const signaturePads = {};
+
+      function initSignaturePad(canvasId) {
+        const canvas = document.getElementById(canvasId);
+        if (!canvas) return;
+
+        const ctx = canvas.getContext('2d');
+        let isDrawing = false;
+        let lastX = 0;
+        let lastY = 0;
+
+        // Ajustar tamanho do canvas
+        function resizeCanvas() {
+          const rect = canvas.getBoundingClientRect();
+          canvas.width = rect.width;
+          canvas.height = rect.height;
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.strokeStyle = '#000000';
+          ctx.lineWidth = 2;
+          ctx.lineCap = 'round';
+          ctx.lineJoin = 'round';
+        }
+
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        function getPos(e) {
+          const rect = canvas.getBoundingClientRect();
+          const scaleX = canvas.width / rect.width;
+          const scaleY = canvas.height / rect.height;
+          if (e.touches) {
+            return {
+              x: (e.touches[0].clientX - rect.left) * scaleX,
+              y: (e.touches[0].clientY - rect.top) * scaleY
+            };
+          }
+          return {
+            x: (e.clientX - rect.left) * scaleX,
+            y: (e.clientY - rect.top) * scaleY
+          };
+        }
+
+        function startDrawing(e) {
+          isDrawing = true;
+          const pos = getPos(e);
+          lastX = pos.x;
+          lastY = pos.y;
+        }
+
+        function draw(e) {
+          if (!isDrawing) return;
+          e.preventDefault();
+          const pos = getPos(e);
+          ctx.beginPath();
+          ctx.moveTo(lastX, lastY);
+          ctx.lineTo(pos.x, pos.y);
+          ctx.stroke();
+          lastX = pos.x;
+          lastY = pos.y;
+        }
+
+        function stopDrawing() {
+          isDrawing = false;
+        }
+
+        // Mouse events
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', stopDrawing);
+
+        // Touch events
+        canvas.addEventListener('touchstart', startDrawing);
+        canvas.addEventListener('touchmove', draw);
+        canvas.addEventListener('touchend', stopDrawing);
+
+        signaturePads[canvasId] = {
+          canvas,
+          ctx,
+          clear: () => {
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+          },
+          isEmpty: () => {
+            const pixelData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+            for (let i = 0; i < pixelData.length; i += 4) {
+              if (pixelData[i] !== 255 || pixelData[i + 1] !== 255 || pixelData[i + 2] !== 255) {
+                return false;
+              }
+            }
+            return true;
+          },
+          toDataURL: () => canvas.toDataURL('image/png')
+        };
+      }
+
+      // Inicializar as assinaturas
+      initSignaturePad('signatureTecnico');
+      initSignaturePad('signatureCliente');
+
+      window.limparAssinatura = function(tipo) {
+        const pad = signaturePads['signature' + tipo];
+        if (pad) pad.clear();
+      };
+
+      document.getElementById('ordemForm')?.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        // Verificar assinatura do cliente
+        const signatureCliente = signaturePads['signatureCliente'];
+        if (signatureCliente && signatureCliente.isEmpty()) {
+          alert('Por favor, solicite a assinatura do cliente antes de gerar a O.S.');
+          return;
+        }
+
+        const resultDiv = document.getElementById('pdfResult');
+        resultDiv.className = 'loading';
+        resultDiv.textContent = '⏳ Gerando PDF...';
+
+        const dados = {
+          nomeCliente: document.getElementById('nomeCliente').value,
+          documentoCliente: document.getElementById('documentoCliente').value,
+          telefoneCliente: document.getElementById('telefoneCliente').value,
+          modeloAparelho: document.getElementById('modeloAparelho').value,
+          defeitoApresentado: document.getElementById('defeitoApresentado').value,
+          termoGarantia: document.getElementById('termoGarantia').value,
+          valorConserto: document.getElementById('valorConserto').value,
+          previsaoEntrega: document.getElementById('previsaoEntrega').value
+        };
+
+        try {
+          const { jsPDF } = window.jspdf;
+          const doc = new jsPDF();
+
+          const dataAtual = new Date().toLocaleString('pt-BR');
+          const numOS = Date.now().toString().slice(-8);
+
+          // Cabeçalho
+          doc.setFontSize(22);
+          doc.setTextColor(0, 200, 200);
+          doc.text('ORDEM DE SERVIÇO', 105, 20, { align: 'center' });
+
+          doc.setFontSize(12);
+          doc.setTextColor(100, 100, 100);
+          doc.text('ScarTech Solutions - Assistência Técnica', 105, 28, { align: 'center' });
+
+          // Linha separadora
+          doc.setDrawColor(0, 200, 200);
+          doc.setLineWidth(0.5);
+          doc.line(15, 35, 195, 35);
+
+          // Data e número da OS
+          doc.setFontSize(10);
+          doc.setTextColor(0, 0, 0);
+          doc.text(`Data: ${dataAtual}`, 15, 45);
+          doc.text(`OS Nº: ${numOS}`, 195, 45, { align: 'right' });
+
+          // Seção: Dados do Cliente
+          doc.setFillColor(240, 250, 255);
+          doc.rect(15, 52, 180, 10, 'F');
+          doc.setFontSize(12);
+          doc.setTextColor(0, 150, 150);
+          doc.text('DADOS DO CLIENTE', 20, 59);
+
+          doc.setFontSize(10);
+          doc.setTextColor(0, 0, 0);
+          let y = 70;
+
+          doc.setFont(undefined, 'bold');
+          doc.text('Nome:', 20, y);
+          doc.setFont(undefined, 'normal');
+          doc.text(dados.nomeCliente, 55, y);
+          y += 8;
+
+          doc.setFont(undefined, 'bold');
+          doc.text('Documento:', 20, y);
+          doc.setFont(undefined, 'normal');
+          doc.text(dados.documentoCliente, 55, y);
+          y += 8;
+
+          doc.setFont(undefined, 'bold');
+          doc.text('Telefone:', 20, y);
+          doc.setFont(undefined, 'normal');
+          doc.text(dados.telefoneCliente, 55, y);
+          y += 15;
+
+          // Seção: Dados do Aparelho
+          doc.setFillColor(240, 250, 255);
+          doc.rect(15, y, 180, 10, 'F');
+          doc.setFontSize(12);
+          doc.setTextColor(0, 150, 150);
+          doc.text('DADOS DO APARELHO', 20, y + 7);
+          y += 17;
+
+          doc.setFontSize(10);
+          doc.setTextColor(0, 0, 0);
+          doc.setFont(undefined, 'bold');
+          doc.text('Modelo:', 20, y);
+          doc.setFont(undefined, 'normal');
+          doc.text(dados.modeloAparelho, 55, y);
+          y += 8;
+
+          doc.setFont(undefined, 'bold');
+          doc.text('Defeito:', 20, y);
+          doc.setFont(undefined, 'normal');
+          const defeitoLinhas = doc.splitTextToSize(dados.defeitoApresentado, 135);
+          doc.text(defeitoLinhas, 55, y);
+          y += defeitoLinhas.length * 6 + 10;
+
+          // Foto do aparelho (se anexada)
+          if (fotoDataURL) {
+            doc.setFillColor(240, 250, 255);
+            doc.rect(15, y, 180, 10, 'F');
+            doc.setFontSize(12);
+            doc.setTextColor(0, 150, 150);
+            doc.text('FOTO DO APARELHO', 20, y + 7);
+            y += 15;
+
+            try {
+              doc.addImage(fotoDataURL, 'JPEG', 55, y, 100, 60);
+              y += 68;
+            } catch (imgError) {
+              doc.setFontSize(9);
+              doc.setTextColor(150, 150, 150);
+              doc.text('[Foto anexada - erro ao carregar]', 105, y + 30, { align: 'center' });
+              y += 40;
+            }
+          }
+
+          // Valor do conserto
+          doc.setFillColor(220, 255, 240);
+          doc.rect(15, y, 180, 14, 'F');
+          doc.setFontSize(14);
+          doc.setTextColor(0, 150, 100);
+          doc.text(`VALOR DO CONSERTO: R$ ${parseFloat(dados.valorConserto).toFixed(2)}`, 105, y + 10, { align: 'center' });
+          y += 22;
+
+          // Previsão de entrega (se preenchida)
+          if (dados.previsaoEntrega) {
+            const dataEntrega = new Date(dados.previsaoEntrega + 'T00:00:00').toLocaleDateString('pt-BR');
+            doc.setFontSize(11);
+            doc.setTextColor(100, 100, 100);
+            doc.text(`Previsão de Entrega: ${dataEntrega}`, 105, y, { align: 'center' });
+            y += 12;
+          }
+
+          // Verificar se precisa nova página
+          if (y > 200) {
+            doc.addPage();
+            y = 20;
+          }
+
+          // Termo de garantia
+          doc.setFillColor(240, 250, 255);
+          doc.rect(15, y, 180, 10, 'F');
+          doc.setFontSize(12);
+          doc.setTextColor(0, 150, 150);
+          doc.text('TERMO DE GARANTIA', 20, y + 7);
+          y += 17;
+
+          doc.setFontSize(9);
+          doc.setTextColor(60, 60, 60);
+          const garantiaLinhas = doc.splitTextToSize(dados.termoGarantia, 170);
+          doc.text(garantiaLinhas, 20, y);
+          y += garantiaLinhas.length * 5 + 15;
+
+          // Verificar se precisa nova página para assinaturas
+          if (y > 220) {
+            doc.addPage();
+            y = 20;
+          }
+
+          // Assinaturas Digitais
+          doc.setFillColor(240, 250, 255);
+          doc.rect(15, y, 180, 10, 'F');
+          doc.setFontSize(12);
+          doc.setTextColor(0, 150, 150);
+          doc.text('ASSINATURAS', 20, y + 7);
+          y += 17;
+
+          // Assinatura do Técnico
+          const signatureTecnico = signaturePads['signatureTecnico'];
+          if (signatureTecnico && !signatureTecnico.isEmpty()) {
+            try {
+              doc.addImage(signatureTecnico.toDataURL(), 'PNG', 20, y, 70, 35);
+            } catch (e) {}
+          }
+
+          // Assinatura do Cliente
+          if (signatureCliente && !signatureCliente.isEmpty()) {
+            try {
+              doc.addImage(signatureCliente.toDataURL(), 'PNG', 120, y, 70, 35);
+            } catch (e) {}
+          }
+
+          y += 38;
+
+          // Labels das assinaturas
+          doc.setDrawColor(100, 100, 100);
+          doc.line(20, y, 90, y);
+          doc.line(120, y, 190, y);
+          y += 5;
+
+          doc.setFontSize(10);
+          doc.setTextColor(80, 80, 80);
+          doc.text('Assinatura do Técnico', 55, y, { align: 'center' });
+          doc.text('Assinatura do Cliente', 155, y, { align: 'center' });
+
+          // Rodapé
+          doc.setFontSize(8);
+          doc.setTextColor(150, 150, 150);
+          doc.text('ScarTech Solutions - Assistência Técnica Especializada', 105, 285, { align: 'center' });
+
+          // Salva o PDF
+          doc.save(`OS_${numOS}.pdf`);
+
+          // Salvar no localStorage
+          let ordens = JSON.parse(localStorage.getItem('scartech_ordens') || '[]');
+          ordens.push({
+            cliente: dados.nomeCliente,
+            equipamento: dados.modeloAparelho,
+            descricao: dados.defeitoApresentado,
+            valor: parseFloat(dados.valorConserto),
+            status: 'aberta',
+            data: new Date().toLocaleDateString('pt-BR'),
+            numOS: numOS
+          });
+          localStorage.setItem('scartech_ordens', JSON.stringify(ordens));
+
+          resultDiv.className = 'success';
+          resultDiv.textContent = '✅ PDF gerado com sucesso! O download iniciou automaticamente.';
+
+          // Limpar formulário após 2 segundos
+          setTimeout(() => {
+            document.getElementById('ordemForm').reset();
+            document.getElementById('termoGarantia').value = 'Garantia de 90 dias para o serviço realizado, conforme legislação vigente. A garantia não cobre danos causados por mau uso, quedas, contato com líquidos ou tentativa de reparo por terceiros.';
+            // Limpar foto
+            window.removerFoto();
+            // Limpar assinaturas
+            window.limparAssinatura('Tecnico');
+            window.limparAssinatura('Cliente');
+          }, 2000);
+
+        } catch (error) {
+          resultDiv.className = 'error';
+          resultDiv.textContent = '❌ Erro ao gerar PDF: ' + error.message;
+        }
+      });
+    </script>
+  </body>
+</html>
