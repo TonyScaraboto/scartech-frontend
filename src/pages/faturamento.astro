@@ -5,8 +5,7 @@ let resumo = "";
 let error = "";
 
 try {
-  // TODO: Trocar para URL do backend em produção
-  const backendUrl = import.meta.env.PUBLIC_BACKEND_URL || "http://localhost:8080";
+  const backendUrl = "https://querulous-kathleen-scartechsolution-c8941e0e.koyeb.app";
   const response = await fetch(`${backendUrl}/api/billing/summary`);
   if (response.ok) {
     resumo = await response.text();
