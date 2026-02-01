@@ -51,6 +51,16 @@ import { SignedIn, SignedOut } from '@clerk/astro/components';
       .product-stock { font-size: 0.9rem; color: #666; margin-top: 8px; }
       .not-signed-in { display: flex; align-items: center; justify-content: center; min-height: 100vh; flex-direction: column; gap: 20px; }
       .login-btn { padding: 12px 30px; background: linear-gradient(135deg, #00ffff 0%, #00cccc 100%); color: #000; text-decoration: none; border-radius: 8px; font-weight: 600; }
+      .empty-message { color: #666; text-align: center; padding: 40px; grid-column: 1 / -1; }
+      .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); align-items: center; justify-content: center; z-index: 1000; }
+      .modal.active { display: flex; }
+      .modal-content { background: #12121a; border: 1px solid rgba(0, 255, 255, 0.2); border-radius: 12px; padding: 30px; width: 100%; max-width: 400px; }
+      .modal-content h3 { color: #00ffff; margin-bottom: 20px; }
+      .form-group { margin-bottom: 15px; }
+      .form-group label { display: block; color: #a0a0a0; margin-bottom: 5px; font-size: 0.9rem; }
+      .form-group input { width: 100%; padding: 10px 15px; background: rgba(0,0,0,0.3); border: 1px solid rgba(0, 255, 255, 0.2); border-radius: 6px; color: #fff; font-size: 1rem; }
+      .form-group input:focus { outline: none; border-color: #00ffff; }
+      .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
     </style>
   </head>
   <body>
@@ -93,29 +103,35 @@ import { SignedIn, SignedOut } from '@clerk/astro/components';
           <div class="card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
               <h2 class="card-title" style="margin-bottom: 0;">📦 Catálogo</h2>
-              <button class="btn btn-primary">+ Novo Produto</button>
+              <button class="btn btn-primary" onclick="abrirModal()">+ Novo Produto</button>
             </div>
             
-            <div class="products-grid">
-              <div class="product-card">
-                <div class="product-name">Tela iPhone 13</div>
-                <div class="product-price">R$ 450,00</div>
-                <div class="product-stock">Estoque: 5 unidades</div>
-              </div>
-              <div class="product-card">
-                <div class="product-name">Bateria Samsung S23</div>
-                <div class="product-price">R$ 180,00</div>
-                <div class="product-stock">Estoque: 12 unidades</div>
-              </div>
-              <div class="product-card">
-                <div class="product-name">Conector de Carga USB-C</div>
-                <div class="product-price">R$ 35,00</div>
-                <div class="product-stock">Estoque: 25 unidades</div>
-              </div>
-              <div class="product-card">
-                <div class="product-name">Película de Vidro</div>
-                <div class="product-price">R$ 25,00</div>
-                <div class="product-stock">Estoque: 50 unidades</div>
+            <div class="products-grid" id="productsGrid">
+              <p class="empty-message">Nenhum produto cadastrado</p>
+            </div>
+
+            <!-- Modal Novo Produto -->
+            <div class="modal" id="modalProduto">
+              <div class="modal-content">
+                <h3>Novo Produto</h3>
+                <form id="formProduto">
+                  <div class="form-group">
+                    <label>Nome do Produto</label>
+                    <input type="text" id="nomeProduto" required />
+                  </div>
+                  <div class="form-group">
+                    <label>Preço (R$)</label>
+                    <input type="number" id="precoProduto" step="0.01" required />
+                  </div>
+                  <div class="form-group">
+                    <label>Quantidade em Estoque</label>
+                    <input type="number" id="estoqueProduto" required />
+                  </div>
+                  <div class="modal-actions">
+                    <button type="button" class="btn" onclick="fecharModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Salvar</button>
+                  </div>
+                </form>
               </div>
             </div>
 
@@ -129,6 +145,57 @@ import { SignedIn, SignedOut } from '@clerk/astro/components';
       document.getElementById('toggleBtn')?.addEventListener('click', () => {
         document.getElementById('sidebar')?.classList.toggle('collapsed');
       });
+
+      // Produtos armazenados localmente
+      let produtos = JSON.parse(localStorage.getItem('scartech_produtos') || '[]');
+      
+      function renderProdutos() {
+        const grid = document.getElementById('productsGrid');
+        if (produtos.length === 0) {
+          grid.innerHTML = '<p class="empty-message">Nenhum produto cadastrado</p>';
+        } else {
+          grid.innerHTML = produtos.map((p, i) => `
+            <div class="product-card">
+              <div class="product-name">${p.nome}</div>
+              <div class="product-price">R$ ${p.preco.toFixed(2)}</div>
+              <div class="product-stock">Estoque: ${p.estoque} unidades</div>
+              <button class="btn" style="margin-top:10px;padding:8px 12px;font-size:0.85rem;" onclick="excluirProduto(${i})">🗑️ Excluir</button>
+            </div>
+          `).join('');
+        }
+      }
+
+      function abrirModal() {
+        document.getElementById('modalProduto').classList.add('active');
+      }
+
+      function fecharModal() {
+        document.getElementById('modalProduto').classList.remove('active');
+        document.getElementById('formProduto').reset();
+      }
+
+      function excluirProduto(index) {
+        if (confirm('Excluir este produto?')) {
+          produtos.splice(index, 1);
+          localStorage.setItem('scartech_produtos', JSON.stringify(produtos));
+          renderProdutos();
+        }
+      }
+
+      document.getElementById('formProduto')?.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const produto = {
+          nome: document.getElementById('nomeProduto').value,
+          preco: parseFloat(document.getElementById('precoProduto').value),
+          estoque: parseInt(document.getElementById('estoqueProduto').value)
+        };
+        produtos.push(produto);
+        localStorage.setItem('scartech_produtos', JSON.stringify(produtos));
+        fecharModal();
+        renderProdutos();
+      });
+
+      renderProdutos();
     </script>
   </body>
 </html>
