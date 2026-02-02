@@ -414,10 +414,47 @@ import { SignedIn, SignedOut } from "@clerk/astro/components";
         display: block;
       }
 
+      /* Theme Toggle Button */
+      .theme-toggle {
+        position: fixed;
+        top: 15px;
+        right: 15px;
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #12121a 0%, #1a1a2e 100%);
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1001;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 10px rgba(0, 212, 255, 0.2);
+      }
+      .theme-toggle:hover {
+        transform: scale(1.1);
+        box-shadow: 0 4px 20px rgba(0, 212, 255, 0.3);
+        border-color: #00ffff;
+      }
+      .theme-icon {
+        font-size: 1.2rem;
+        line-height: 1;
+      }
+
       /* Mobile Responsivo */
       @media (max-width: 768px) {
         .mobile-menu-btn {
           display: flex;
+        }
+        .theme-toggle {
+          width: 40px;
+          height: 40px;
+          top: 12px;
+          right: 12px;
+        }
+        .theme-icon {
+          font-size: 1.1rem;
         }
         .page-header {
           padding-left: 55px;
@@ -495,6 +532,15 @@ import { SignedIn, SignedOut } from "@clerk/astro/components";
       }
 
       @media (max-width: 480px) {
+        .theme-toggle {
+          width: 36px;
+          height: 36px;
+          top: 10px;
+          right: 10px;
+        }
+        .theme-icon {
+          font-size: 1rem;
+        }
         .main-content {
           padding: 10px;
           padding-top: 70px;

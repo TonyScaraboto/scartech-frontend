@@ -460,9 +460,21 @@ import { SignedIn, SignedOut, UserButton } from "@clerk/astro/components";
         .header {
           padding: 0.75rem 1rem 0.75rem 5rem;
           margin-bottom: 1rem;
+          height: auto;
+          min-height: 60px;
         }
-        .header h1 {
-          font-size: 1.2rem;
+        .header-title {
+          font-size: 1.1rem;
+        }
+        .header-right {
+          gap: 0.5rem;
+        }
+        .theme-toggle {
+          width: 36px;
+          height: 36px;
+        }
+        .theme-icon {
+          font-size: 1rem;
         }
         .cards-grid {
           grid-template-columns: repeat(2, 1fr);
@@ -493,6 +505,8 @@ import { SignedIn, SignedOut, UserButton } from "@clerk/astro/components";
         .menu-toggle {
           top: 0.75rem;
           left: 0.75rem;
+          width: 42px;
+          height: 42px;
         }
       }
 
@@ -502,9 +516,23 @@ import { SignedIn, SignedOut, UserButton } from "@clerk/astro/components";
           padding-top: 70px;
         }
         .header {
-          flex-direction: column;
-          gap: 0.75rem;
-          align-items: flex-start;
+          padding: 0.5rem 0.75rem 0.5rem 4rem;
+          min-height: 55px;
+        }
+        .header-title {
+          font-size: 1rem;
+          white-space: nowrap;
+        }
+        .header-right {
+          gap: 0.4rem;
+          flex-shrink: 0;
+        }
+        .theme-toggle {
+          width: 32px;
+          height: 32px;
+        }
+        .theme-icon {
+          font-size: 0.9rem;
         }
         .welcome-section {
           padding: 1rem;
@@ -531,6 +559,32 @@ import { SignedIn, SignedOut, UserButton } from "@clerk/astro/components";
         .card-description {
           font-size: 0.7rem;
           -webkit-line-clamp: 1;
+        }
+        .menu-toggle {
+          top: 0.6rem;
+          left: 0.6rem;
+          width: 38px;
+          height: 38px;
+        }
+      }
+
+      /* Clerk UserButton mobile fix */
+      :global(.cl-userButtonBox) {
+        width: 32px !important;
+        height: 32px !important;
+      }
+      @media (max-width: 480px) {
+        :global(.cl-userButtonBox) {
+          width: 28px !important;
+          height: 28px !important;
+        }
+        :global(.cl-userButtonTrigger) {
+          width: 28px !important;
+          height: 28px !important;
+        }
+        :global(.cl-avatarBox) {
+          width: 28px !important;
+          height: 28px !important;
         }
       }
     </style>
