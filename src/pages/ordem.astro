@@ -1432,6 +1432,23 @@ import { SignedIn, SignedOut } from "@clerk/astro/components";
               }
             }
 
+            // Enviar para o backend para persistência e contabilidade
+            try {
+              const response = await fetch("/api/orders/registrar", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify(novaOrdem),
+              });
+              if (!response.ok) {
+                throw new Error("Erro ao registrar ordem no backend");
+              }
+              console.log("Ordem registrada no backend com sucesso!");
+            } catch (backendError) {
+              console.warn("Erro ao registrar ordem no backend:", backendError);
+            }
+
             resultDiv.className = "success";
             resultDiv.textContent =
               "✅ PDF gerado com sucesso! O download iniciou automaticamente.";
