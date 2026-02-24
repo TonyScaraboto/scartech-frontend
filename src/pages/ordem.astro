@@ -1424,9 +1424,12 @@ import { SignedIn, SignedOut } from "@clerk/astro/components";
               window.ScartechCloud
             ) {
               try {
-                window.ScartechCloud.init(window.Clerk.user.id);
-                await window.ScartechCloud.saveOrdens(ordens);
-                console.log("Ordem salva na nuvem com sucesso!");
+                const clerkEmail = window.Clerk.user.primaryEmailAddress?.emailAddress;
+                if (clerkEmail) {
+                  window.ScartechCloud.init(clerkEmail);
+                  await window.ScartechCloud.saveOrdens(ordens);
+                  console.log("Ordem salva na nuvem com sucesso!");
+                }
               } catch (cloudError) {
                 console.warn("Erro ao salvar na nuvem:", cloudError);
               }

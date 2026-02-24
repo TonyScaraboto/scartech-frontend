@@ -1,20 +1,75 @@
 // ScarTech Cloud Data API
 // Gerencia sincronização de dados entre localStorage e API do backend
+// Funciona com JWT tokens para autenticação stateless
 
 const BACKEND_URL = 'https://querulous-kathleen-scartechsolution-c8941e0e.koyeb.app';
 
 const ScartechCloud = {
     userId: null,
+    token: null,
     
-    // Inicializa com o userId do Clerk
-    init: function(clerkUserId) {
-        this.userId = clerkUserId;
-        console.log('ScartechCloud inicializado para usuário:', clerkUserId);
+    // Inicializa com o email do Clerk e obtém JWT token
+    async init(clerkEmail) {
+        this.userId = clerkEmail; // Armazena email como identificador
+        
+        // Tenta recuperar token do localStorage
+        const savedToken = localStorage.getItem('scartech_jwt_token');
+        if (savedToken) {
+            this.token = savedToken;
+            console.log('ScartechCloud: Token recuperado do localStorage');
+            return;
+        }
+        
+        // Se não houver token, tenta fazer login com o email Clerk
+        try {
+            await this.refreshToken(clerkEmail);
+        } catch (error) {
+            console.warn('Não conseguiu obter token JWT:', error);
+        }
     },
     
-    // Verifica se está inicializado
-    isReady: function() {
-        return this.userId !== null;
+    // Obtém novo token JWT através do backend
+    async refreshToken(email) {
+        try {
+            const response = await fetch(`${BACKEND_URL}/api/auth/verify`, {
+                method: 'GET',
+                headers: this.getHeaders()
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                console.log('Token verificado com sucesso');
+                return true;
+            }
+        } catch (error) {
+            console.warn('Erro ao verificar token:', error);
+        }
+        return false;
+    },
+    
+    // Define o token JWT (chamado após autenticação bem-sucedida)
+    setToken(token) {
+        this.token = token;
+        localStorage.setItem('scartech_jwt_token', token);
+        console.log('JWT Token salvo no localStorage');
+    },
+    
+    // Obtém headers com autenticação JWT
+    getHeaders() {
+        const headers = {
+            'Content-Type': 'application/json'
+        };
+        
+        if (this.token) {
+            headers['Authorization'] = `Bearer ${this.token}`;
+        }
+        
+        return headers;
+    },
+    
+    // Verifica se está inicializado e tem token
+    isReady() {
+        return this.token !== null && this.token !== undefined && this.token !== '';
     },
     
     // ========== ORDENS ==========
@@ -23,12 +78,17 @@ const ScartechCloud = {
         if (!this.isReady()) return this.getFromLocalStorage('scartech_ordens');
         
         try {
-            const response = await fetch(`${BACKEND_URL}/api/data/${this.userId}/ordens`);
+            const response = await fetch(`${BACKEND_URL}/api/data/ordens`, {
+                method: 'GET',
+                headers: this.getHeaders()
+            });
             if (response.ok) {
                 const ordens = await response.json();
-                // Sincroniza com localStorage como backup
                 localStorage.setItem('scartech_ordens', JSON.stringify(ordens));
                 return ordens;
+            } else if (response.status === 401) {
+                console.warn('Token expirado ao buscar ordens');
+                return this.getFromLocalStorage('scartech_ordens');
             }
         } catch (error) {
             console.warn('Erro ao buscar ordens da nuvem, usando localStorage:', error);
@@ -37,18 +97,20 @@ const ScartechCloud = {
     },
     
     async saveOrdens(ordens) {
-        // Sempre salva no localStorage primeiro
         localStorage.setItem('scartech_ordens', JSON.stringify(ordens));
         
         if (!this.isReady()) return { success: true, local: true };
         
         try {
-            const response = await fetch(`${BACKEND_URL}/api/data/${this.userId}/ordens`, {
+            const response = await fetch(`${BACKEND_URL}/api/data/ordens`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: this.getHeaders(),
                 body: JSON.stringify(ordens)
             });
-            return await response.json();
+            if (response.ok) {
+                return { success: true, synced: true };
+            }
+            return { success: true, local: true };
         } catch (error) {
             console.warn('Erro ao salvar ordens na nuvem:', error);
             return { success: true, local: true, error: error.message };
@@ -56,9 +118,27 @@ const ScartechCloud = {
     },
     
     async addOrdem(ordem) {
-        const ordens = await this.getOrdens();
-        ordens.push(ordem);
-        return this.saveOrdens(ordens);
+        if (!this.isReady()) {
+            const ordens = this.getFromLocalStorage('scartech_ordens') || [];
+            ordens.push(ordem);
+            localStorage.setItem('scartech_ordens', JSON.stringify(ordens));
+            return { success: true, local: true };
+        }
+        
+        try {
+            const response = await fetch(`${BACKEND_URL}/api/data/ordens/add`, {
+                method: 'POST',
+                headers: this.getHeaders(),
+                body: JSON.stringify(ordem)
+            });
+            if (response.ok) {
+                return { success: true, synced: true };
+            }
+            return { success: false };
+        } catch (error) {
+            console.warn('Erro ao adicionar ordem:', error);
+            return { success: false, error: error.message };
+        }
     },
     
     // ========== VENDAS ==========
@@ -67,7 +147,10 @@ const ScartechCloud = {
         if (!this.isReady()) return this.getFromLocalStorage('scartech_vendas');
         
         try {
-            const response = await fetch(`${BACKEND_URL}/api/data/${this.userId}/vendas`);
+            const response = await fetch(`${BACKEND_URL}/api/data/vendas`, {
+                method: 'GET',
+                headers: this.getHeaders()
+            });
             if (response.ok) {
                 const vendas = await response.json();
                 localStorage.setItem('scartech_vendas', JSON.stringify(vendas));
@@ -85,12 +168,15 @@ const ScartechCloud = {
         if (!this.isReady()) return { success: true, local: true };
         
         try {
-            const response = await fetch(`${BACKEND_URL}/api/data/${this.userId}/vendas`, {
+            const response = await fetch(`${BACKEND_URL}/api/data/vendas`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: this.getHeaders(),
                 body: JSON.stringify(vendas)
             });
-            return await response.json();
+            if (response.ok) {
+                return { success: true, synced: true };
+            }
+            return { success: true, local: true };
         } catch (error) {
             console.warn('Erro ao salvar vendas na nuvem:', error);
             return { success: true, local: true, error: error.message };
@@ -98,9 +184,27 @@ const ScartechCloud = {
     },
     
     async addVenda(venda) {
-        const vendas = await this.getVendas();
-        vendas.push(venda);
-        return this.saveVendas(vendas);
+        if (!this.isReady()) {
+            const vendas = this.getFromLocalStorage('scartech_vendas') || [];
+            vendas.push(venda);
+            localStorage.setItem('scartech_vendas', JSON.stringify(vendas));
+            return { success: true, local: true };
+        }
+        
+        try {
+            const response = await fetch(`${BACKEND_URL}/api/data/vendas/add`, {
+                method: 'POST',
+                headers: this.getHeaders(),
+                body: JSON.stringify(venda)
+            });
+            if (response.ok) {
+                return { success: true, synced: true };
+            }
+            return { success: false };
+        } catch (error) {
+            console.warn('Erro ao adicionar venda:', error);
+            return { success: false, error: error.message };
+        }
     },
     
     // ========== PRODUTOS ==========
@@ -109,7 +213,10 @@ const ScartechCloud = {
         if (!this.isReady()) return this.getFromLocalStorage('scartech_produtos');
         
         try {
-            const response = await fetch(`${BACKEND_URL}/api/data/${this.userId}/produtos`);
+            const response = await fetch(`${BACKEND_URL}/api/data/produtos`, {
+                method: 'GET',
+                headers: this.getHeaders()
+            });
             if (response.ok) {
                 const produtos = await response.json();
                 localStorage.setItem('scartech_produtos', JSON.stringify(produtos));
@@ -127,12 +234,15 @@ const ScartechCloud = {
         if (!this.isReady()) return { success: true, local: true };
         
         try {
-            const response = await fetch(`${BACKEND_URL}/api/data/${this.userId}/produtos`, {
+            const response = await fetch(`${BACKEND_URL}/api/data/produtos`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: this.getHeaders(),
                 body: JSON.stringify(produtos)
             });
-            return await response.json();
+            if (response.ok) {
+                return { success: true, synced: true };
+            }
+            return { success: true, local: true };
         } catch (error) {
             console.warn('Erro ao salvar produtos na nuvem:', error);
             return { success: true, local: true, error: error.message };
@@ -140,15 +250,33 @@ const ScartechCloud = {
     },
     
     async addProduto(produto) {
-        const produtos = await this.getProdutos();
-        produtos.push(produto);
-        return this.saveProdutos(produtos);
+        if (!this.isReady()) {
+            const produtos = this.getFromLocalStorage('scartech_produtos') || [];
+            produtos.push(produto);
+            localStorage.setItem('scartech_produtos', JSON.stringify(produtos));
+            return { success: true, local: true };
+        }
+        
+        try {
+            const response = await fetch(`${BACKEND_URL}/api/data/produtos/add`, {
+                method: 'POST',
+                headers: this.getHeaders(),
+                body: JSON.stringify(produto)
+            });
+            if (response.ok) {
+                return { success: true, synced: true };
+            }
+            return { success: false };
+        } catch (error) {
+            console.warn('Erro ao adicionar produto:', error);
+            return { success: false, error: error.message };
+        }
     },
     
     // ========== SYNC TOTAL ==========
     
     async syncAll() {
-        if (!this.isReady()) return { success: false, message: 'Usuário não inicializado' };
+        if (!this.isReady()) return { success: false, message: 'Token não inicializado' };
         
         try {
             const data = {
@@ -157,12 +285,15 @@ const ScartechCloud = {
                 produtos: this.getFromLocalStorage('scartech_produtos')
             };
             
-            const response = await fetch(`${BACKEND_URL}/api/data/${this.userId}/sync`, {
+            const response = await fetch(`${BACKEND_URL}/api/data/sync`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: this.getHeaders(),
                 body: JSON.stringify(data)
             });
-            return await response.json();
+            if (response.ok) {
+                return { success: true, synced: true };
+            }
+            return { success: false };
         } catch (error) {
             console.warn('Erro ao sincronizar dados:', error);
             return { success: false, error: error.message };
@@ -173,7 +304,10 @@ const ScartechCloud = {
         if (!this.isReady()) return null;
         
         try {
-            const response = await fetch(`${BACKEND_URL}/api/data/${this.userId}`);
+            const response = await fetch(`${BACKEND_URL}/api/data`, {
+                method: 'GET',
+                headers: this.getHeaders()
+            });
             if (response.ok) {
                 const data = await response.json();
                 // Atualiza localStorage

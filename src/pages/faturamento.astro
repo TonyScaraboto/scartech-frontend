@@ -938,9 +938,14 @@ import { SignedIn, SignedOut } from "@clerk/astro/components";
 
       async function initClerkAndLoadData() {
         if (typeof window.Clerk !== "undefined" && window.Clerk.user) {
-          clerkUserId = window.Clerk.user.id;
+          clerkUserId = window.Clerk.user.primaryEmailAddress?.emailAddress;
+          if (!clerkUserId) {
+            console.error("Email do Clerk não disponível");
+            setTimeout(initClerkAndLoadData, 500);
+            return;
+          }
           window.ScartechCloud.init(clerkUserId);
-          console.log("Clerk userId:", clerkUserId);
+          console.log("Clerk email:", clerkUserId);
           await loadAllData();
         } else {
           setTimeout(initClerkAndLoadData, 500);
