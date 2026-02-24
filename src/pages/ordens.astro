@@ -2,7 +2,7 @@
 import { SignedIn, SignedOut } from "@clerk/astro/components";
 ---
 
-<html lang="pt-BR">
+<html lang="pt-BR" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
     <meta
@@ -15,6 +15,43 @@ import { SignedIn, SignedOut } from "@clerk/astro/components";
     <title>Ordens de Serviço - ScarTech Solutions</title>
     <link rel="icon" type="image/png" href="/logo.png" />
     <style>
+      /* CSS Variables para Temas */
+      :root {
+        --bg-primary: #0a0a0f;
+        --bg-secondary: #12121a;
+        --bg-card: linear-gradient(145deg, #12121a 0%, #1a1a2e 100%);
+        --bg-sidebar: linear-gradient(180deg, #0d0d12 0%, #12121a 100%);
+        --bg-header: linear-gradient(180deg, rgba(10, 10, 15, 0.95), rgba(10, 10, 15, 0.8));
+        --bg-input: #1a1a2e;
+        --text-primary: #ffffff;
+        --text-secondary: #e0e0e0;
+        --text-muted: #6b7280;
+        --border-color: rgba(0, 255, 255, 0.1);
+        --accent-color: #00ffff;
+        --accent-secondary: #00ff88;
+        --card-border: rgba(0, 255, 255, 0.1);
+        --overlay-bg: rgba(0, 0, 0, 0.7);
+        --shadow-color: rgba(0, 212, 255, 0.2);
+      }
+
+      [data-theme="light"] {
+        --bg-primary: #f5f5f5;
+        --bg-secondary: #ffffff;
+        --bg-card: linear-gradient(145deg, #ffffff 0%, #f0f0f0 100%);
+        --bg-sidebar: linear-gradient(180deg, #ffffff 0%, #f5f5f5 100%);
+        --bg-header: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(245, 245, 245, 0.9));
+        --bg-input: #f0f0f0;
+        --text-primary: #1a1a2e;
+        --text-secondary: #4a4a5a;
+        --text-muted: #6b7280;
+        --border-color: rgba(0, 150, 200, 0.2);
+        --accent-color: #0088aa;
+        --accent-secondary: #00aa66;
+        --card-border: rgba(0, 150, 200, 0.2);
+        --overlay-bg: rgba(255, 255, 255, 0.9);
+        --shadow-color: rgba(0, 0, 0, 0.1);
+      }
+
       * {
         margin: 0;
         padding: 0;
@@ -228,10 +265,15 @@ import { SignedIn, SignedOut } from "@clerk/astro/components";
         padding: 12px;
         text-align: left;
         border-bottom: 1px solid rgba(0, 255, 255, 0.1);
+        color: var(--text-secondary);
       }
       th {
-        color: #00ffff;
+        color: var(--accent-color);
         font-weight: 600;
+      }
+      td {
+        color: var(--text-primary);
+        font-weight: 500;
       }
       tr:hover {
         background: rgba(0, 255, 255, 0.05);
@@ -265,10 +307,38 @@ import { SignedIn, SignedOut } from "@clerk/astro/components";
         border-radius: 8px;
         font-weight: 600;
       }
+
+      /* Theme Toggle Button */
+      .theme-toggle {
+        position: fixed;
+        top: 15px;
+        right: 15px;
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1001;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 10px var(--shadow-color);
+      }
+      .theme-toggle:hover {
+        transform: scale(1.1);
+        box-shadow: 0 4px 20px var(--shadow-color);
+      }
+      .theme-icon {
+        font-size: 1.3rem;
+        line-height: 1;
+      }
       .empty-message {
-        color: #666;
+        color: var(--text-secondary);
         text-align: center;
         padding: 20px;
+        font-weight: 500;
       }
       .modal {
         display: none;
@@ -585,6 +655,10 @@ import { SignedIn, SignedOut } from "@clerk/astro/components";
     </SignedOut>
 
     <SignedIn>
+      <!-- Theme Toggle Button -->
+      <button class="theme-toggle" id="themeToggle" title="Alternar tema">
+        <span class="theme-icon">🌙</span>
+      </button>
       <!-- Theme Toggle Button -->
       <button class="theme-toggle" id="themeToggle" title="Alternar tema">
         <span class="theme-icon">🌙</span>
