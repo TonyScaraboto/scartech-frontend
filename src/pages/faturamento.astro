@@ -944,8 +944,10 @@ import { SignedIn, SignedOut } from "@clerk/astro/components";
             setTimeout(initClerkAndLoadData, 500);
             return;
           }
-          window.ScartechCloud.init(clerkUserId);
-          console.log("Clerk email:", clerkUserId);
+          console.log("Inicializando Clerk com email:", clerkUserId);
+          // Aguarda inicialização (que inclui sincronização de dados do backend)
+          await window.ScartechCloud.init(clerkUserId);
+          console.log("Clerk inicializado e dados sincronizados");
           await loadAllData();
         } else {
           setTimeout(initClerkAndLoadData, 500);

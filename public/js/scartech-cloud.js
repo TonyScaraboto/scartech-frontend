@@ -17,41 +17,90 @@ const ScartechCloud = {
         if (savedToken) {
             this.token = savedToken;
             console.log('ScartechCloud: Token recuperado do localStorage');
+            // Sincronizar dados do backend
+            await this.sincronizarDadosDoBackend();
             return;
         }
         
-        // Se não houver token, tenta fazer login com o email Clerk
+        // Se não houver token, faz login com o email Clerk
         try {
-            await this.refreshToken(clerkEmail);
+            const loginSuccess = await this.fazerLoginComEmail(clerkEmail);
+            if (loginSuccess) {
+                // Sincronizar dados do backend após login
+                await this.sincronizarDadosDoBackend();
+            }
         } catch (error) {
-            console.warn('Não conseguiu obter token JWT:', error);
+            console.warn('Não conseguiu fazer login:', error);
         }
     },
-    
-    // Obtém novo token JWT através do backend
-    async refreshToken(email) {
+
+    // Faz login no backend com email do Clerk para obter JWT token
+    async fazerLoginComEmail(email) {
         try {
-            const response = await fetch(`${BACKEND_URL}/api/auth/verify`, {
-                method: 'GET',
-                headers: this.getHeaders()
+            const response = await fetch(`${BACKEND_URL}/api/auth/login-clerk`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ email: email }) // Apenas email para Clerk
             });
             
             if (response.ok) {
                 const data = await response.json();
-                console.log('Token verificado com sucesso');
-                return true;
+                if (data.token) {
+                    this.setToken(data.token);
+                    console.log('JWT Token obtido com sucesso via Clerk:', email);
+                    return true;
+                }
+            } else {
+                console.warn('Erro ao fazer login Clerk:', response.status);
+                const error = await response.json();
+                console.warn('Detalhes do erro:', error);
             }
         } catch (error) {
-            console.warn('Erro ao verificar token:', error);
+            console.warn('Erro ao conectar ao backend:', error);
         }
         return false;
     },
-    
-    // Define o token JWT (chamado após autenticação bem-sucedida)
-    setToken(token) {
-        this.token = token;
-        localStorage.setItem('scartech_jwt_token', token);
-        console.log('JWT Token salvo no localStorage');
+
+    // Sincroniza todos os dados do backend para localStorage
+    async sincronizarDadosDoBackend() {
+        if (!this.isReady()) {
+            console.warn('Não há token para sincronizar dados');
+            return;
+        }
+
+        try {
+            const response = await fetch(`${BACKEND_URL}/api/data`, {
+                method: 'GET',
+                headers: this.getHeaders()
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                
+                // Atualiza localStorage com dados do backend
+                if (data.ordens) {
+                    localStorage.setItem('scartech_ordens', JSON.stringify(data.ordens));
+                    console.log('Ordens sincronizadas do backend:', data.ordens.length);
+                }
+                if (data.vendas) {
+                    localStorage.setItem('scartech_vendas', JSON.stringify(data.vendas));
+                    console.log('Vendas sincronizadas do backend:', data.vendas.length);
+                }
+                if (data.produtos) {
+                    localStorage.setItem('scartech_produtos', JSON.stringify(data.produtos));
+                    console.log('Produtos sincronizados do backend:', data.produtos.length);
+                }
+                
+                return true;
+            } else if (response.status === 401) {
+                console.warn('Token expirado ao sincronizar dados');
+                localStorage.removeItem('scartech_jwt_token');
+                return false;
+            }
+        } catch (error) {
+            console.warn('Erro ao sincronizar dados do backend:', error);
     },
     
     // Obtém headers com autenticação JWT
