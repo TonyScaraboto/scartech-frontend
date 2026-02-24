@@ -993,7 +993,7 @@ import { SignedIn, SignedOut } from "@clerk/astro/components";
 
       function atualizarFaturamento() {
         const faturamentoOrdens = ordens.reduce(
-          (sum, o) => sum + (parseFloat(o.valor) || 0),
+          (sum, o) => sum + (parseFloat(o.valorConserto || o.valor) || 0),
           0,
         );
         const faturamentoVendas = vendas.reduce(
@@ -1285,7 +1285,7 @@ import { SignedIn, SignedOut } from "@clerk/astro/components";
           const tipo = o.equipamento || "Serviço Geral";
           if (!servicos[tipo]) servicos[tipo] = { qtd: 0, receita: 0 };
           servicos[tipo].qtd++;
-          servicos[tipo].receita += parseFloat(o.valor) || 0;
+          servicos[tipo].receita += parseFloat(o.valorConserto || o.valor) || 0;
         });
 
         const sorted = Object.entries(servicos)
