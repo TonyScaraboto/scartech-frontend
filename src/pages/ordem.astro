@@ -1474,6 +1474,38 @@ import { SignedIn, SignedOut } from "@clerk/astro/components";
           }
         });
 
+      // Theme management
+      const themeToggle = document.getElementById("themeToggle");
+      const themeIcon = themeToggle?.querySelector(".theme-icon");
+      
+      function initTheme() {
+        const savedTheme = localStorage.getItem("scartech_theme");
+        const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+        const theme = savedTheme || (prefersDark ? "dark" : "light");
+        document.documentElement.setAttribute("data-theme", theme);
+        updateThemeIcon(theme);
+      }
+      
+      function updateThemeIcon(theme) {
+        if (themeIcon) themeIcon.textContent = theme === "dark" ? "☀️" : "🌙";
+      }
+      
+      function toggleTheme() {
+        const currentTheme = document.documentElement.getAttribute("data-theme");
+        const newTheme = currentTheme === "dark" ? "light" : "dark";
+        document.documentElement.setAttribute("data-theme", newTheme);
+        localStorage.setItem("scartech_theme", newTheme);
+        updateThemeIcon(newTheme);
+      }
+      
+      themeToggle?.addEventListener("click", toggleTheme);
+      initTheme();
+
+      // Sidebar Toggle
+      document.getElementById("toggleBtn")?.addEventListener("click", () => {
+        document.getElementById("sidebar")?.classList.toggle("collapsed");
+      });
+
       // Mobile Menu Toggle
       const mobileMenuBtn = document.getElementById("mobileMenuBtn");
       const sidebarOverlay = document.getElementById("sidebarOverlay");
