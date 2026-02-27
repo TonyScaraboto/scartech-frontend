@@ -71,7 +71,7 @@ const ScartechCloud = {
         }
 
         try {
-            const response = await fetch(`${BACKEND_URL}/api/data`, {
+            const response = await fetch(`${BACKEND_URL}/api/user-data`, {
                 method: 'GET',
                 headers: this.getHeaders()
             });
@@ -101,7 +101,7 @@ const ScartechCloud = {
             }
         } catch (error) {
             console.warn('Erro ao sincronizar dados do backend:', error);
-    },
+        },
     
     // Obtém headers com autenticação JWT
     getHeaders() {
@@ -127,7 +127,7 @@ const ScartechCloud = {
         if (!this.isReady()) return this.getFromLocalStorage('scartech_ordens');
         
         try {
-            const response = await fetch(`${BACKEND_URL}/api/data/ordens`, {
+            const response = await fetch(`${BACKEND_URL}/api/user-data/ordens`, {
                 method: 'GET',
                 headers: this.getHeaders()
             });
@@ -151,7 +151,7 @@ const ScartechCloud = {
         if (!this.isReady()) return { success: true, local: true };
         
         try {
-            const response = await fetch(`${BACKEND_URL}/api/data/ordens`, {
+            const response = await fetch(`${BACKEND_URL}/api/user-data/ordens`, {
                 method: 'POST',
                 headers: this.getHeaders(),
                 body: JSON.stringify(ordens)
@@ -175,7 +175,7 @@ const ScartechCloud = {
         }
         
         try {
-            const response = await fetch(`${BACKEND_URL}/api/data/ordens/add`, {
+            const response = await fetch(`${BACKEND_URL}/api/user-data/ordens/add`, {
                 method: 'POST',
                 headers: this.getHeaders(),
                 body: JSON.stringify(ordem)
@@ -196,7 +196,7 @@ const ScartechCloud = {
         if (!this.isReady()) return this.getFromLocalStorage('scartech_vendas');
         
         try {
-            const response = await fetch(`${BACKEND_URL}/api/data/vendas`, {
+            const response = await fetch(`${BACKEND_URL}/api/user-data/vendas`, {
                 method: 'GET',
                 headers: this.getHeaders()
             });
@@ -217,7 +217,7 @@ const ScartechCloud = {
         if (!this.isReady()) return { success: true, local: true };
         
         try {
-            const response = await fetch(`${BACKEND_URL}/api/data/vendas`, {
+            const response = await fetch(`${BACKEND_URL}/api/user-data/vendas`, {
                 method: 'POST',
                 headers: this.getHeaders(),
                 body: JSON.stringify(vendas)
@@ -241,7 +241,7 @@ const ScartechCloud = {
         }
         
         try {
-            const response = await fetch(`${BACKEND_URL}/api/data/vendas/add`, {
+            const response = await fetch(`${BACKEND_URL}/api/user-data/vendas/add`, {
                 method: 'POST',
                 headers: this.getHeaders(),
                 body: JSON.stringify(venda)
@@ -262,7 +262,7 @@ const ScartechCloud = {
         if (!this.isReady()) return this.getFromLocalStorage('scartech_produtos');
         
         try {
-            const response = await fetch(`${BACKEND_URL}/api/data/produtos`, {
+            const response = await fetch(`${BACKEND_URL}/api/user-data/produtos`, {
                 method: 'GET',
                 headers: this.getHeaders()
             });
@@ -283,7 +283,7 @@ const ScartechCloud = {
         if (!this.isReady()) return { success: true, local: true };
         
         try {
-            const response = await fetch(`${BACKEND_URL}/api/data/produtos`, {
+            const response = await fetch(`${BACKEND_URL}/api/user-data/produtos`, {
                 method: 'POST',
                 headers: this.getHeaders(),
                 body: JSON.stringify(produtos)
@@ -307,7 +307,7 @@ const ScartechCloud = {
         }
         
         try {
-            const response = await fetch(`${BACKEND_URL}/api/data/produtos/add`, {
+            const response = await fetch(`${BACKEND_URL}/api/user-data/produtos/add`, {
                 method: 'POST',
                 headers: this.getHeaders(),
                 body: JSON.stringify(produto)
@@ -334,7 +334,7 @@ const ScartechCloud = {
                 produtos: this.getFromLocalStorage('scartech_produtos')
             };
             
-            const response = await fetch(`${BACKEND_URL}/api/data/sync`, {
+            const response = await fetch(`${BACKEND_URL}/api/user-data/sync`, {
                 method: 'POST',
                 headers: this.getHeaders(),
                 body: JSON.stringify(data)
@@ -353,7 +353,7 @@ const ScartechCloud = {
         if (!this.isReady()) return null;
         
         try {
-            const response = await fetch(`${BACKEND_URL}/api/data`, {
+            const response = await fetch(`${BACKEND_URL}/api/user-data`, {
                 method: 'GET',
                 headers: this.getHeaders()
             });
