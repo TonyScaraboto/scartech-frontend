@@ -1079,7 +1079,28 @@ import { SignedIn, SignedOut } from "@clerk/astro/components";
       sidebarOverlay?.addEventListener("click", toggleMobileMenu);
 
       // Inicializar
-      renderVendas();
+      async function initClerkAndLoadData() {
+        if (typeof window.Clerk !== "undefined" && window.Clerk.user) {
+          const clerkEmail = window.Clerk.user.primaryEmailAddress?.emailAddress;
+          if (!clerkEmail) { setTimeout(initClerkAndLoadData, 500); return; }
+          await window.ScartechCloud.init(clerkEmail);
+          await loadAllData();
+        } else {
+          setTimeout(initClerkAndLoadData, 500);
+        }
+      }
+
+      async function loadAllData() {
+        try {
+          vendas = await window.ScartechCloud.getVendas();
+        } catch (e) {
+          console.error('Erro ao carregar vendas da nuvem:', e);
+          vendas = JSON.parse(localStorage.getItem('scartech_vendas') || '[]');
+        }
+        renderVendas();
+      }
+
+      initClerkAndLoadData();
     </script>
   </body>
 </html>

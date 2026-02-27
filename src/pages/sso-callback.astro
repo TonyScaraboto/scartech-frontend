@@ -9,5 +9,21 @@ import { AuthenticateWithRedirectCallback } from "@clerk/astro/components";
   </head>
   <body>
     <AuthenticateWithRedirectCallback />
+    <script is:inline>
+      // Após o callback do Clerk, esperar e inicializar sincronização automática
+      (function waitAndInit() {
+        if (typeof window.Clerk !== 'undefined' && window.Clerk.user) {
+          const email = window.Clerk.user.primaryEmailAddress?.emailAddress;
+          if (email && window.ScartechCloud) {
+            window.ScartechCloud.init(email).then(() => {
+              // opcional: redirecionar para dashboard após sincronizar
+              try { window.location.href = '/dashboard'; } catch (e) { console.warn(e); }
+            });
+            return;
+          }
+        }
+        setTimeout(waitAndInit, 300);
+      })();
+    </script>
   </body>
 </html>

@@ -315,6 +315,20 @@ import { SignedIn, SignedOut } from "@clerk/astro/components";
       
       themeToggle?.addEventListener("click", toggleTheme);
       initTheme();
+
+      // Inicializar sincronização (se o usuário já estiver logado)
+      async function initClerkAndLoadData() {
+        if (typeof window.Clerk !== "undefined" && window.Clerk.user) {
+          const clerkEmail = window.Clerk.user.primaryEmailAddress?.emailAddress;
+          if (!clerkEmail) { setTimeout(initClerkAndLoadData, 500); return; }
+          await window.ScartechCloud.init(clerkEmail);
+          try { await window.ScartechCloud.loadAll(); } catch (e) { console.warn(e); }
+        } else {
+          setTimeout(initClerkAndLoadData, 500);
+        }
+      }
+
+      initClerkAndLoadData();
     })();
     </script>
   </body>

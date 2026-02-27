@@ -795,7 +795,29 @@ import { SignedIn, SignedOut } from "@clerk/astro/components";
           renderProdutos();
         });
 
-      renderProdutos();
+      // Inicializar sincronização multi-device
+      async function initClerkAndLoadData() {
+        if (typeof window.Clerk !== "undefined" && window.Clerk.user) {
+          const clerkEmail = window.Clerk.user.primaryEmailAddress?.emailAddress;
+          if (!clerkEmail) { setTimeout(initClerkAndLoadData, 500); return; }
+          await window.ScartechCloud.init(clerkEmail);
+          await loadAllData();
+        } else {
+          setTimeout(initClerkAndLoadData, 500);
+        }
+      }
+
+      async function loadAllData() {
+        try {
+          produtos = await window.ScartechCloud.getProdutos();
+        } catch (e) {
+          console.error('Erro ao carregar produtos da nuvem:', e);
+          produtos = JSON.parse(localStorage.getItem('scartech_produtos') || '[]');
+        }
+        renderProdutos();
+      }
+
+      initClerkAndLoadData();
     </script>
   </body>
 </html>

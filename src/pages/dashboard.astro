@@ -740,6 +740,21 @@ import { SignedIn, SignedOut, UserButton } from "@clerk/astro/components";
         themeToggle?.addEventListener("click", toggleTheme);
         initTheme();
 
+        // Inicialização segura (sincroniza dados do usuário se disponível)
+        async function initClerkAndLoadData() {
+          if (typeof window.Clerk !== "undefined" && window.Clerk.user) {
+            const clerkEmail = window.Clerk.user.primaryEmailAddress?.emailAddress;
+            if (!clerkEmail) { setTimeout(initClerkAndLoadData, 500); return; }
+            await window.ScartechCloud.init(clerkEmail);
+            // loadAll may return aggregated data; ignore if not used here
+            try { await window.ScartechCloud.loadAll(); } catch (e) { console.warn(e); }
+          } else {
+            setTimeout(initClerkAndLoadData, 500);
+          }
+        }
+
+        initClerkAndLoadData();
+
         // Menu management
         const menuToggle = document.getElementById("menuToggle");
         const sidebar = document.getElementById("sidebar");

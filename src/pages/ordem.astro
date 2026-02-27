@@ -1501,6 +1501,33 @@ import { SignedIn, SignedOut } from "@clerk/astro/components";
       themeToggle?.addEventListener("click", toggleTheme);
       initTheme();
 
+      // Auto sync Clerk + ScartechCloud
+      async function initClerkAndLoadData() {
+        if (typeof window.Clerk !== "undefined" && window.Clerk.user) {
+          const clerkEmail = window.Clerk.user.primaryEmailAddress?.emailAddress;
+          if (!clerkEmail) { setTimeout(initClerkAndLoadData, 500); return; }
+          await window.ScartechCloud.init(clerkEmail);
+          await loadAllData();
+        } else {
+          setTimeout(initClerkAndLoadData, 500);
+        }
+      }
+
+      async function loadAllData() {
+        try {
+          const remoteOrdens = await window.ScartechCloud.getOrdens();
+          if (Array.isArray(remoteOrdens)) {
+            ordens = remoteOrdens;
+            localStorage.setItem('scartech_ordens', JSON.stringify(ordens));
+          }
+        } catch (e) {
+          ordens = JSON.parse(localStorage.getItem('scartech_ordens') || '[]');
+        }
+        renderOrdens?.();
+      }
+
+      initClerkAndLoadData();
+
       // Sidebar Toggle
       document.getElementById("toggleBtn")?.addEventListener("click", () => {
         document.getElementById("sidebar")?.classList.toggle("collapsed");

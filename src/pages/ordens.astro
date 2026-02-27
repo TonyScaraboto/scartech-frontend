@@ -1088,7 +1088,35 @@ import { SignedIn, SignedOut } from "@clerk/astro/components";
       mobileMenuBtn?.addEventListener("click", toggleMobileMenu);
       sidebarOverlay?.addEventListener("click", toggleMobileMenu);
 
-      renderOrdens();
+      // ========== SINCRONIZAÇÃO AUTOMÁTICA DE DADOS (MULTI-DEVICE) ==========
+      async function initClerkAndLoadData() {
+        let clerkUserId = null;
+        if (typeof window.Clerk !== "undefined" && window.Clerk.user) {
+          clerkUserId = window.Clerk.user.primaryEmailAddress?.emailAddress;
+          if (!clerkUserId) {
+            console.error("Email do Clerk não disponível");
+            setTimeout(initClerkAndLoadData, 500);
+            return;
+          }
+          await window.ScartechCloud.init(clerkUserId);
+          await loadAllData();
+        } else {
+          setTimeout(initClerkAndLoadData, 500);
+        }
+      }
+
+      async function loadAllData() {
+        try {
+          ordens = await window.ScartechCloud.getOrdens();
+        } catch (error) {
+          console.error("Erro ao carregar ordens da nuvem:", error);
+          ordens = JSON.parse(localStorage.getItem("scartech_ordens") || "[]");
+        }
+        renderOrdens();
+      }
+
+      // Inicializar Clerk + Sync
+      initClerkAndLoadData();
     </script>
   </body>
 </html>
