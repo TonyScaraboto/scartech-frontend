@@ -1215,15 +1215,46 @@ async function excluirConta() {
   const senha = document.getElementById('senhaExclusao').value;
   if (!senha) { showToast('Informe sua senha para confirmar.', 'error'); return; }
 
-  /* ── INTEGRAÇÃO SUPABASE ─────────────────────
-  // 1. Re-autentique e delete via Admin API / Edge Function (nunca no client diretamente)
-  // Recomendado: criar uma Edge Function no Supabase que verifica a senha e deleta
-  // await fetch('/functions/v1/delete-account', { method: 'POST', body: JSON.stringify({ password: senha }) });
-  ──────────────────────────────────────────── */
+  if (!window.supabase) {
+    showToast('Supabase não configurado.', 'error');
+    return;
+  }
 
-  showToast('Conta excluída. (integre Edge Function para persistir)', 'error');
-  closeModal('modal-excluir-conta');
-  setTimeout(() => window.location.href = 'index.html', 2000);
+  showToast('Iniciando exclusão, aguarde...');
+  try {
+    const { data: { user } } = await window.supabase.auth.getUser();
+    if (!user) { showToast('Usuário não logado.', 'error'); return; }
+
+    // 1. Valida a senha usando sign in
+    const { error: signInError } = await window.supabase.auth.signInWithPassword({
+      email: user.email,
+      password: senha
+    });
+
+    if (signInError) {
+      showToast('Senha atual incorreta.', 'error');
+      return;
+    }
+
+    // 2. Chama a função RPC para apagar do banco
+    const { error: rpcError } = await window.supabase.rpc('delete_user');
+    if (rpcError) {
+      console.error(rpcError);
+      showToast('Erro no banco: ' + rpcError.message, 'error');
+      return;
+    }
+
+    // 3. Tira toda a sessão do cache do navegador
+    await window.supabase.auth.signOut();
+    closeModal('modal-excluir-conta');
+    
+    // 4. Volta pra aba de login
+    window.location.href = 'index.html';
+
+  } catch (err) {
+    console.error(err);
+    showToast('Erro interno ao tentar apagar conta.', 'error');
+  }
 }
 
 // ── Força de senha ───────────────────────────
