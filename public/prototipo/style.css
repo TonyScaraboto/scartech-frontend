@@ -1389,4 +1389,53 @@ body.modal-open { overflow: hidden; }
   }
 }
 
+/* ==================== WhatsApp flutuante ==================== */
+.whatsapp-float {
+  position: fixed;
+  right: 20px;
+  bottom: 24px;
+  z-index: 9999;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #25d366;
+  color: #fff;
+  box-shadow: 0 4px 20px rgba(37, 211, 102, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.whatsapp-float:hover {
+  transform: scale(1.06);
+  box-shadow: 0 6px 28px rgba(37, 211, 102, 0.55);
+  color: #fff;
+}
+
+.whatsapp-float:focus-visible {
+  outline: 3px solid rgba(14, 159, 170, 0.6);
+  outline-offset: 3px;
+}
+
+.whatsapp-float svg {
+  width: 30px;
+  height: 30px;
+  fill: currentColor;
+}
+
+@media (max-width: 768px) {
+  .whatsapp-float {
+    right: 16px;
+    bottom: 20px;
+    width: 52px;
+    height: 52px;
+  }
+
+  .whatsapp-float svg {
+    width: 28px;
+    height: 28px;
+  }
+}
 
