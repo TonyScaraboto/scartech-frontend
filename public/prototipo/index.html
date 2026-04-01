@@ -393,7 +393,7 @@
       height: 100%;
     }
 
-    .role-card input[type="radio"]:checked + .role-content {
+    .role-card input[type="radio"]:checked+.role-content {
       border-color: var(--primary);
       background: var(--primary-light);
       box-shadow: 0 0 0 3px var(--primary-glow);
@@ -760,32 +760,169 @@
 
     /* ==================== RESPONSIVE ==================== */
     @media (max-width: 1100px) {
-      .panel-left { width: 45%; padding: 48px 40px; }
-      .hero-title { font-size: 2.2rem; }
-      .hero-desc { font-size: 0.9rem; max-width: 320px; }
-      .panel-right { padding: 40px 40px; }
+      .panel-left {
+        width: 45%;
+        padding: 48px 40px;
+      }
+
+      .hero-title {
+        font-size: 2.2rem;
+      }
+
+      .hero-desc {
+        font-size: 0.9rem;
+        max-width: 320px;
+      }
+
+      .panel-right {
+        padding: 40px 40px;
+      }
     }
 
     @media (max-width: 900px) {
-      body { align-items: flex-start; }
-      .panel-left { display: none; }
-      .panel-right { padding: 40px 32px; align-items: flex-start; padding-top: 48px; }
-      .mobile-brand { display: flex; }
-      .login-header { margin-bottom: 24px; }
-      .login-header h2 { font-size: 1.5rem; }
+      body {
+        align-items: flex-start;
+      }
+
+      .panel-left {
+        display: none;
+      }
+
+      .panel-right {
+        padding: 40px 32px;
+        align-items: flex-start;
+        padding-top: 48px;
+      }
+
+      .mobile-brand {
+        display: flex;
+      }
+
+      .login-header {
+        margin-bottom: 24px;
+      }
+
+      .login-header h2 {
+        font-size: 1.5rem;
+      }
     }
 
     @media (max-width: 480px) {
-      .panel-right { padding: 28px 20px; padding-top: 36px; }
-      .login-header h2 { font-size: 1.35rem; }
-      .login-header p { font-size: 0.85rem; }
-      .auth-tabs { margin-bottom: 20px; }
-      .auth-form { gap: 14px; }
-      .form-input { padding: 11px 14px 11px 38px; }
-      .btn-submit { padding: 12px; }
-      .login-footer { margin-top: 20px; }
-      .mobile-brand img { width: 36px; height: 36px; }
-      .mobile-brand span { font-size: 1.2rem; }
+      .panel-right {
+        padding: 28px 20px;
+        padding-top: 36px;
+      }
+
+      .login-header h2 {
+        font-size: 1.35rem;
+      }
+
+      .login-header p {
+        font-size: 0.85rem;
+      }
+
+      .auth-tabs {
+        margin-bottom: 20px;
+      }
+
+      .auth-form {
+        gap: 14px;
+      }
+
+      .form-input {
+        padding: 11px 14px 11px 38px;
+      }
+
+      .btn-submit {
+        padding: 12px;
+      }
+
+      .login-footer {
+        margin-top: 20px;
+      }
+
+      .mobile-brand img {
+        width: 36px;
+        height: 36px;
+      }
+
+      .mobile-brand span {
+        font-size: 1.2rem;
+      }
+    }
+
+    /* ==================== MODAL DE TERMOS ==================== */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.25s ease;
+    }
+
+    .modal-overlay.show {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .modal-box {
+      background: var(--bg-card);
+      width: 90%;
+      max-width: 600px;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      flex-direction: column;
+      transform: translateY(20px) scale(0.95);
+      transition: all 0.25s ease;
+      max-height: 85vh;
+    }
+
+    .modal-overlay.show .modal-box {
+      transform: translateY(0) scale(1);
+    }
+
+    .modal-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-header h3 {
+      font-size: 1.15rem;
+      color: var(--text-primary);
+      margin: 0;
+    }
+
+    .btn-close-modal {
+      background: none;
+      border: none;
+      font-size: 1.25rem;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+
+    .modal-body {
+      padding: 24px;
+      overflow-y: auto;
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      line-height: 1.6;
+    }
+
+    .modal-footer {
+      padding: 16px 24px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: flex-end;
     }
 
     /* ==================== HONEYPOT (hidden) ==================== */
@@ -1009,8 +1146,8 @@
         <!-- Termos -->
         <div class="checkbox-wrap">
           <input type="checkbox" id="termos" name="terms" required />
-          <label for="termos">Concordo com os <a href="#" style="color:var(--primary);font-weight:600;">termos de
-              uso</a></label>
+          <label for="termos">Concordo com os <a href="javascript:void(0)" onclick="abrirTermos()"
+              style="color:var(--primary);font-weight:600;">termos de uso</a></label>
         </div>
 
         <button type="submit" class="btn-submit" id="btnCadastro">Criar minha conta</button>
@@ -1050,6 +1187,161 @@
         <p>© 2025 ScarTech · Assistência Técnica Digital</p>
       </div>
 
+    </div>
+  </div>
+
+  <!-- Modal de Termos de Uso -->
+  <div class="modal-overlay" id="modalTermos">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>Termos de Uso</h3>
+        <button type="button" class="btn-close-modal" onclick="fecharTermos()">✕</button>
+      </div>
+      <div class="modal-body" id="termos-conteudo" style="min-height: 200px;">
+        <!-- COLOQUE AQUI O SEU TEXTO DE TERMOS DE USO -->
+        <pre>
+          Termos de Uso e Política de Privacidade — ScarTech
+          Aqui está o texto completo dos termos, redigido em conformidade com a LGPD (Lei nº 13.709/2018), o Marco Civil
+          da Internet (Lei nº 12.965/2014) e o Código Civil Brasileiro:
+
+          TERMOS DE USO E POLÍTICA DE PRIVACIDADE
+          Versão 1.0 — Última atualização: abril de 2026
+          Ao criar uma conta na plataforma ScarTech, você declara ter lido, compreendido e aceito integralmente os
+          presentes Termos de Uso e a Política de Privacidade. Caso não concorde com qualquer disposição, não prossiga
+          com o cadastro.
+
+          1. IDENTIFICAÇÃO DO CONTROLADOR DE DADOS
+          A plataforma ScarTech é operada por seu titular ("Empresa"), responsável pelo tratamento dos dados pessoais
+          coletados neste sistema, na qualidade de Controlador, nos termos do art. 5º, VI da LGPD.
+
+          2. ACEITAÇÃO E CAPACIDADE CIVIL
+          2.1. Ao aceitar estes Termos, o usuário declara ter capacidade civil plena (ser maior de 18 anos ou
+          emancipado) para celebrar contratos, conforme os arts. 3º e 5º do Código Civil Brasileiro.
+          2.2. Caso o usuário seja menor de 18 anos, o cadastro somente poderá ser realizado mediante consentimento
+          expresso de um responsável legal.
+
+          3. DADOS COLETADOS
+          Ao criar sua conta e utilizar a plataforma, os seguintes dados pessoais serão coletados e tratados:
+          3.1. Dados de cadastro:
+
+          Nome completo, endereço de e-mail, telefone e documento de identidade (CPF/CNPJ), conforme aplicável.
+
+          3.2. Dados de acesso e segurança:
+
+          Endereço IP, agente de navegador (user-agent), data e hora de login, dispositivo utilizado, tentativas de
+          acesso e tokens de sessão — para fins de segurança e prevenção de fraudes.
+
+          3.3. Dados operacionais:
+
+          Informações inseridas pelo usuário no sistema, incluindo ordens de serviço, clientes cadastrados, produtos,
+          fornecedores, vendas e registros financeiros.
+
+          3.4. Dados de auditoria:
+
+          Registro de todas as ações realizadas na plataforma (logs de auditoria), incluindo criações, edições e
+          exclusões de registros.
+
+
+          4. FINALIDADE DO TRATAMENTO DE DADOS
+          Os dados coletados serão utilizados exclusivamente para as seguintes finalidades:
+
+          Prestação dos serviços contratados na plataforma (gestão de assistência técnica, faturamento, vendas e
+          estoque);
+          Autenticação, segurança e prevenção de acessos não autorizados;
+          Cumprimento de obrigações legais e regulatórias;
+          Comunicações relacionadas à conta e aos serviços;
+          Melhoria contínua da plataforma.
+
+          A ScarTech não comercializa, não compartilha e não cede dados pessoais a terceiros para fins publicitários ou
+          comerciais.
+
+          5. BASE LEGAL PARA O TRATAMENTO (LGPD, art. 7º)
+          O tratamento dos dados pessoais está fundamentado nas seguintes bases legais:
+
+          Execução de contrato (art. 7º, V): necessário para a prestação dos serviços contratados;
+          Legítimo interesse (art. 7º, IX): para segurança, prevenção de fraudes e auditoria;
+          Cumprimento de obrigação legal (art. 7º, II): quando exigido pela legislação vigente;
+          Consentimento (art. 7º, I): para finalidades específicas informadas ao titular.
+
+
+          6. SEGURANÇA DOS DADOS
+          6.1. A ScarTech adota medidas técnicas e administrativas adequadas para proteger os dados pessoais contra
+          acesso não autorizado, destruição, perda, alteração ou divulgação indevida, incluindo criptografia de sessão,
+          controle de acesso por autenticação e registros de auditoria.
+          6.2. Em caso de incidente de segurança que possa acarretar risco ou dano relevante aos titulares, a Empresa
+          notificará a Autoridade Nacional de Proteção de Dados (ANPD) e os usuários afetados, nos termos do art. 48 da
+          LGPD.
+
+          7. RETENÇÃO E EXCLUSÃO DE DADOS
+          7.1. Os dados serão mantidos pelo período necessário ao cumprimento das finalidades descritas nestes Termos,
+          ou pelo prazo mínimo exigido pela legislação brasileira aplicável.
+          7.2. Após o encerramento da conta, os dados poderão ser retidos por até 5 (cinco) anos para fins de
+          cumprimento de obrigações legais, fiscais e para eventual exercício de defesa em processos judiciais ou
+          administrativos.
+
+          8. DIREITOS DO TITULAR (LGPD, art. 18)
+          O usuário, na qualidade de titular dos dados, possui os seguintes direitos, que poderão ser exercidos a
+          qualquer momento mediante solicitação:
+
+          Confirmação da existência de tratamento de dados;
+          Acesso aos dados pessoais tratados;
+          Correção de dados incompletos, inexatos ou desatualizados;
+          Anonimização, bloqueio ou eliminação de dados desnecessários ou tratados em desconformidade com a LGPD;
+          Portabilidade dos dados a outro fornecedor de serviço, mediante requisição formal;
+          Eliminação dos dados tratados com base no consentimento, quando aplicável;
+          Informação sobre o compartilhamento de dados com terceiros;
+          Revogação do consentimento, a qualquer tempo.
+
+          Para exercer qualquer desses direitos, o usuário deverá entrar em contato por meio dos canais oficiais da
+          ScarTech.
+
+          9. RESPONSABILIDADES DO USUÁRIO
+          Ao criar e utilizar sua conta, o usuário se compromete a:
+          9.1. Fornecer informações verdadeiras, precisas e atualizadas no momento do cadastro;
+          9.2. Manter a confidencialidade de suas credenciais de acesso (e-mail e senha), sendo o único responsável por
+          todas as atividades realizadas com sua conta;
+          9.3. Notificar imediatamente a ScarTech sobre qualquer uso não autorizado de sua conta;
+          9.4. Utilizar a plataforma exclusivamente para fins lícitos, não sendo permitido o uso para atividades
+          fraudulentas, ilícitas ou que violem direitos de terceiros;
+          9.5. Não tentar acessar, modificar ou danificar sistemas, dados ou infraestrutura da plataforma de forma não
+          autorizada.
+
+          10. RESPONSABILIDADES DA SCARTECH
+          10.1. A ScarTech se compromete a manter a plataforma disponível e funcional, ressalvadas hipóteses de
+          manutenção programada, caso fortuito ou força maior.
+          10.2. A Empresa não se responsabiliza por perdas ou danos decorrentes de: uso indevido da plataforma pelo
+          próprio usuário; invasões de terceiros que resultem de negligência do usuário na guarda de suas credenciais;
+          ou indisponibilidade temporária de serviços de infraestrutura de terceiros.
+
+          11. PROPRIEDADE INTELECTUAL
+          Todo o conteúdo da plataforma ScarTech, incluindo sua interface, código-fonte, logotipo e funcionalidades, é
+          protegido pela Lei nº 9.610/1998 (Lei de Direitos Autorais). É vedada a reprodução, distribuição ou engenharia
+          reversa sem autorização prévia e expressa da Empresa.
+
+          12. ALTERAÇÕES NOS TERMOS
+          12.1. A ScarTech reserva-se o direito de modificar estes Termos a qualquer momento, mediante aviso prévio aos
+          usuários por meio da plataforma ou por e-mail.
+          12.2. A continuidade de uso da plataforma após a notificação de alterações será considerada como aceitação
+          tácita das novas condições.
+
+          13. LEI APLICÁVEL E FORO
+          Estes Termos são regidos pelas leis da República Federativa do Brasil. Fica eleito o foro da comarca de
+          Itanhaém, Estado de São Paulo, para dirimir quaisquer controvérsias decorrentes deste instrumento, com
+          renúncia expressa a qualquer outro, por mais privilegiado que seja.
+
+          14. CONTATO E ENCARREGADO DE DADOS (DPO)
+          Para dúvidas, solicitações relacionadas aos seus dados pessoais ou para reportar incidentes de segurança,
+          entre em contato por meio dos canais oficiais da ScarTech.
+
+
+          ✅ Ao clicar em "Criar conta" ou "Concordo com os Termos", você confirma que leu, compreendeu e aceitou
+          integralmente estes Termos de Uso e a Política de Privacidade da ScarTech, conferindo a este aceite a validade
+          jurídica prevista no art. 10, §2º do Marco Civil da Internet (Lei nº 12.965/2014).</pre>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-submit" style="width: auto; padding: 10px 24px;"
+          onclick="aceitarTermos()">Entendi e Aceito</button>
+      </div>
     </div>
   </div>
 
@@ -1259,7 +1551,7 @@
             .select('category')
             .maybeSingle();
           if (prof?.category === 'fornecedor') dest = 'fornecimento.html';
-        } catch (_) {}
+        } catch (_) { }
         window.location.href = dest;
 
       } catch (err) {
@@ -1407,10 +1699,24 @@
             .select('category')
             .maybeSingle();
           if (prof?.category === 'fornecedor') dest = 'fornecimento.html';
-        } catch (_) {}
+        } catch (_) { }
         window.location.href = dest;
-      } catch (e) {}
+      } catch (e) { }
     })();
+
+    // Funções do Modal de Termos
+    function abrirTermos() {
+      document.getElementById('modalTermos').classList.add('show');
+    }
+
+    function fecharTermos() {
+      document.getElementById('modalTermos').classList.remove('show');
+    }
+
+    function aceitarTermos() {
+      document.getElementById('termos').checked = true;
+      fecharTermos();
+    }
 
     // Limpa honeypots para evitar autofill indevido
     document.addEventListener('DOMContentLoaded', () => {

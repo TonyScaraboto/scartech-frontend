@@ -655,94 +655,124 @@ function gerarPdfOrdem(data, orderNumber) {
 }
 
 async function salvarOrdem() {
-  if (!hasOrdemFormV2()) {
-    window.location.href = 'ordens.html';
-    return;
-  }
-  const data = collectOrdemFormData();
-  if (!validateOrdemData(data)) return;
-  const mediaData = collectMediaData();
-  const detalhesCompletos = { ...data, ...mediaData };
-  const cliente = data.nomeCliente;
-  const equipamento = data.modeloAparelho;
-  const status = data.status;
-  const valor = Number(data.valorConserto || 0);
-  const descricao = data.defeitoApresentado;
-  const existingOrder = ordemEmEdicao ? ordens.find((o) => o.id === ordemEmEdicao) : null;
-  const numOS = normalizeOrderNumber(existingOrder);
-  localStorage.setItem('scartech_assistencia_nome', data.nomeAssistencia);
+  if (window.isSavingOrdem) return;
+  window.isSavingOrdem = true;
 
-  if (hasSupabaseClient()) {
-    const { data: authData, error: authErr } = await window.supabase.auth.getUser();
-    const userId = authData?.user?.id;
-    if (authErr || !userId) {
-      showToast('Sessão inválida. Faça login novamente.', 'error');
+  try {
+    if (!hasOrdemFormV2()) {
+      window.location.href = 'ordens.html';
       return;
     }
+    const data = collectOrdemFormData();
+    if (!validateOrdemData(data)) return;
+    const mediaData = collectMediaData();
+    const detalhesCompletos = { ...data, ...mediaData };
+    const cliente = data.nomeCliente;
+    const equipamento = data.modeloAparelho;
+    const status = data.status;
+    const valor = Number(data.valorConserto || 0);
+    const descricao = data.defeitoApresentado;
+    const existingOrder = ordemEmEdicao ? ordens.find((o) => o.id === ordemEmEdicao) : null;
+    const numOS = normalizeOrderNumber(existingOrder);
+    localStorage.setItem('scartech_assistencia_nome', data.nomeAssistencia);
 
-    const payload = {
-      user_id: userId,
-      cliente,
-      equipamento,
-      status,
-      valor,
-      descricao,
-      data: new Date().toISOString().slice(0, 10),
-      updated_at: new Date().toISOString(),
-    };
-
-    if (ordemEmEdicao) {
-      const { error } = await window.supabase
-        .from('ordens_servico')
-        .update(payload)
-        .eq('id', ordemEmEdicao);
-      if (error) {
-        showToast('Erro ao atualizar ordem.', 'error');
+    if (hasSupabaseClient()) {
+      const { data: authData, error: authErr } = await window.supabase.auth.getUser();
+      const userId = authData?.user?.id;
+      if (authErr || !userId) {
+        showToast('Sessão inválida. Faça login novamente.', 'error');
         return;
       }
-      showToast('Ordem atualizada com sucesso!', 'success');
-      setDetalhesCache({ id: ordemEmEdicao, numOS }, detalhesCompletos);
-    } else {
-      const { data: inserted, error } = await window.supabase
-        .from('ordens_servico')
-        .insert(payload)
-        .select('id')
-        .single();
-      if (error) {
-        showToast('Erro ao cadastrar ordem.', 'error');
-        return;
-      }
-      showToast('Ordem de serviço criada com sucesso!', 'success');
-      setDetalhesCache({ id: inserted?.id, numOS }, detalhesCompletos);
-    }
 
-    if (gerarPdfOrdem(data, numOS)) {
-      showPdfResult('PDF gerado com sucesso e download iniciado.', 'success');
-    }
-    ordemEmEdicao = null;
-    closeModal('modal-nova-ordem');
-    limparFormOrdem();
-    await carregarOrdens();
-    return;
-  }
-
-  if (ordemEmEdicao) {
-    const idx = ordens.findIndex((o) => o.id === ordemEmEdicao);
-    if (idx >= 0) {
-      const updatedOrder = {
-        ...ordens[idx],
+      const payload = {
+        user_id: userId,
         cliente,
         equipamento,
         status,
         valor,
         descricao,
-        numOS,
-        detalhesOS: detalhesCompletos,
+        data: new Date().toISOString().slice(0, 10),
+        updated_at: new Date().toISOString(),
       };
-      ordens[idx] = updatedOrder;
-      setDetalhesCache(updatedOrder, detalhesCompletos);
+
+      if (ordemEmEdicao) {
+        const { error } = await window.supabase
+          .from('ordens_servico')
+          .update(payload)
+          .eq('id', ordemEmEdicao);
+        if (error) {
+          showToast('Erro ao atualizar ordem.', 'error');
+          return;
+        }
+        showToast('Ordem atualizada com sucesso!', 'success');
+        setDetalhesCache({ id: ordemEmEdicao, numOS }, detalhesCompletos);
+      } else {
+        const { data: inserted, error } = await window.supabase
+          .from('ordens_servico')
+          .insert(payload)
+          .select('id')
+          .single();
+        if (error) {
+          showToast('Erro ao cadastrar ordem.', 'error');
+          return;
+        }
+        showToast('Ordem de serviço criada com sucesso!', 'success');
+        setDetalhesCache({ id: inserted?.id, numOS }, detalhesCompletos);
+      }
+
+      if (gerarPdfOrdem(data, numOS)) {
+        showPdfResult('PDF gerado com sucesso e download iniciado.', 'success');
+      }
+      ordemEmEdicao = null;
+      closeModal('modal-nova-ordem');
+      limparFormOrdem();
+      await carregarOrdens();
+      return;
     }
-    ordemEmEdicao = null;
+
+    if (ordemEmEdicao) {
+      const idx = ordens.findIndex((o) => o.id === ordemEmEdicao);
+      if (idx >= 0) {
+        const updatedOrder = {
+          ...ordens[idx],
+          cliente,
+          equipamento,
+          status,
+          valor,
+          descricao,
+          numOS,
+          detalhesOS: detalhesCompletos,
+        };
+        ordens[idx] = updatedOrder;
+        setDetalhesCache(updatedOrder, detalhesCompletos);
+      }
+      ordemEmEdicao = null;
+      saveData();
+      renderOrdens();
+      if (gerarPdfOrdem(data, numOS)) {
+        showPdfResult('PDF gerado com sucesso e download iniciado.', 'success');
+      }
+      closeModal('modal-nova-ordem');
+      limparFormOrdem();
+      showToast('Ordem atualizada com sucesso!', 'success');
+      return;
+    }
+
+    const ordem = {
+      id: Date.now(),
+      numero: ordens.length + 1,
+      numOS,
+      cliente,
+      equipamento,
+      status,
+      valor,
+      descricao,
+      detalhesOS: detalhesCompletos,
+      data: new Date().toLocaleDateString('pt-BR'),
+    };
+
+    ordens.push(ordem);
+    setDetalhesCache(ordem, detalhesCompletos);
     saveData();
     renderOrdens();
     if (gerarPdfOrdem(data, numOS)) {
@@ -750,33 +780,11 @@ async function salvarOrdem() {
     }
     closeModal('modal-nova-ordem');
     limparFormOrdem();
-    showToast('Ordem atualizada com sucesso!', 'success');
-    return;
-  }
+    showToast('Ordem de serviço criada com sucesso!', 'success');
 
-  const ordem = {
-    id: Date.now(),
-    numero: ordens.length + 1,
-    numOS,
-    cliente,
-    equipamento,
-    status,
-    valor,
-    descricao,
-    detalhesOS: detalhesCompletos,
-    data: new Date().toLocaleDateString('pt-BR'),
-  };
-
-  ordens.push(ordem);
-  setDetalhesCache(ordem, detalhesCompletos);
-  saveData();
-  renderOrdens();
-  if (gerarPdfOrdem(data, numOS)) {
-    showPdfResult('PDF gerado com sucesso e download iniciado.', 'success');
+  } finally {
+    window.isSavingOrdem = false;
   }
-  closeModal('modal-nova-ordem');
-  limparFormOrdem();
-  showToast('Ordem de serviço criada com sucesso!', 'success');
 }
 
 function limparFormOrdem() {
