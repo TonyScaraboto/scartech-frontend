@@ -1,0 +1,56 @@
+---
+import "../styles/theme.css";
+---
+
+<html lang="pt-BR" data-theme="dark">
+  <head>
+    <title>Fornecedores - ScarTech</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0f172a" />
+    <link rel="icon" type="image/png" href="/logo.png" />
+    <style>
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        font-family: "Plus Jakarta Sans", "Segoe UI", system-ui, sans-serif;
+      }
+      .loading-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 14px;
+        padding: 20px 24px;
+        color: var(--text-secondary);
+      }
+    </style>
+  </head>
+  <body>
+    <main class="loading-card">Carregando fornecedores...</main>
+    <script is:inline src="/js/scartech-cloud.js"></script>
+    <script>
+      import { getSupabaseBrowser } from "../lib/supabase-browser";
+      const supabase = getSupabaseBrowser();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!session) {
+        window.location.replace("/");
+      } else {
+        if (session.user?.email && window.ScartechCloud) {
+          await window.ScartechCloud.init(session.user.email, session.access_token);
+          try {
+            await window.ScartechCloud.loadAll();
+          } catch (e) {
+            console.warn(e);
+          }
+        }
+        window.location.replace("/prototipo/fornecedores.html");
+      }
+    </script>
+  </body>
+</html>

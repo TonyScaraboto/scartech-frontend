@@ -1,0 +1,67 @@
+---
+import "../../styles/theme.css";
+---
+
+<html lang="pt-BR" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Autenticando…</title>
+  </head>
+  <body
+    style="min-height:100vh;display:flex;align-items:center;justify-content:center;font-family:system-ui;background:var(--bg-primary);color:var(--text-primary)"
+  >
+    <p>Conectando à sua conta…</p>
+    <script is:inline src="/js/scartech-cloud.js"></script>
+    <script>
+      import { getSupabaseBrowser } from "../../lib/supabase-browser";
+
+      const supabase = getSupabaseBrowser();
+      const callbackUrl = new URL(window.location.href);
+      const code = callbackUrl.searchParams.get("code");
+      const tokenHash = callbackUrl.searchParams.get("token_hash");
+      const type = callbackUrl.searchParams.get("type");
+
+      // Suporta ambos os fluxos de confirmação: PKCE (code) e OTP (token_hash)
+      if (code) {
+        const { error } = await supabase.auth.exchangeCodeForSession(window.location.href);
+        if (error) {
+          console.error(error);
+          window.location.replace("/prototipo/index.html");
+        }
+      } else if (tokenHash && type) {
+        const { error } = await supabase.auth.verifyOtp({
+          token_hash: tokenHash,
+          type: type as "signup" | "recovery" | "email_change",
+        });
+        if (error) {
+          console.error(error);
+          window.location.replace("/prototipo/index.html");
+        }
+      }
+
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session) {
+        window.location.replace("/prototipo/index.html");
+      } else {
+        if (session.user?.email && window.ScartechCloud) {
+          await window.ScartechCloud.init(session.user.email, session.access_token);
+        }
+        let dest = "/prototipo/dashboard.html";
+        try {
+          const { data: prof } = await supabase
+            .from("profiles")
+            .select("category")
+            .maybeSingle();
+          if (prof?.category === "fornecedor") {
+            dest = "/prototipo/fornecimento.html";
+          }
+        } catch (_) {}
+        window.location.replace(dest);
+      }
+    </script>
+  </body>
+</html>
+

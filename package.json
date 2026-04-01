@@ -1,0 +1,17 @@
+{
+  "name": "scartech-frontend",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/node": "^9.5.2",
+    "@astrojs/vercel": "^9.0.4",
+    "@supabase/supabase-js": "^2.49.1",
+    "astro": "^5.17.1"
+  }
+}

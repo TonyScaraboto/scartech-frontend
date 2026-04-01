@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8" />
+  <script>(function(){var t=localStorage.getItem('scartech_theme');document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');if(t==='dark')document.documentElement.style.colorScheme='dark';})()</script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ScarTech — Assistência Técnica</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Sora:wght@400;600;700&display=swap"
+    rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="style.css?v=20260329d" />
+</head>
+
+<body>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <img src="/logo.png" alt="ScarTech" style="width:36px;height:36px;border-radius:8px;" />
+      <span class="logo-text">ScarTech</span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <span class="nav-label">PRINCIPAL</span>
+        <a class="nav-item active" data-page="dashboard" href="dashboard.html">
+          <span class="nav-icon">🏠</span>
+          <span class="nav-text">Dashboard</span>
+        </a>
+        <a class="nav-item" data-page="faturamento" href="faturamento.html">
+          <span class="nav-icon">💰</span>
+          <span class="nav-text">Faturamento</span>
+        </a>
+      </div>
+      <div class="nav-section">
+        <span class="nav-label">GESTÃO</span>
+        <a class="nav-item" data-page="ordens" href="ordens.html">
+          <span class="nav-icon">📋</span>
+          <span class="nav-text">Ordens de Serviço</span>
+        </a>
+        <a class="nav-item" data-page="produtos" href="produtos.html">
+          <span class="nav-icon">📦</span>
+          <span class="nav-text">Produtos</span>
+        </a>
+        <a class="nav-item" data-page="fornecedores" href="fornecedores.html">
+          <span class="nav-icon">🤝</span>
+          <span class="nav-text">Fornecedores</span>
+        </a>
+        <a class="nav-item" data-page="vendas" href="vendas.html">
+          <span class="nav-icon">🛒</span>
+          <span class="nav-text">Vendas</span>
+        </a>
+      </div>
+      <!-- Item exclusivo para fornecedores - exibido via JS -->
+      <div class="nav-section" id="nav-fornecimento-section" style="display:none;">
+        <span class="nav-label">FORNECEDOR</span>
+        <a class="nav-item" data-page="fornecimento" href="fornecimento.html">
+          <span class="nav-icon">🏭</span>
+          <span class="nav-text">Meu Fornecimento</span>
+        </a>
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <a class="user-card user-card-link" href="perfil.html">
+        <div class="user-avatar" id="sidebarAvatar">ST</div>
+        <div class="user-info">
+          <span class="user-name" id="sidebarNome">Modo Teste</span>
+          <span class="user-role">Meu perfil →</span>
+        </div>
+      </a>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <div class="main-wrapper" id="mainWrapper">
+    <!-- TOP BAR -->
+    <header class="topbar">
+      <button class="menu-toggle" id="menuToggle" onclick="toggleSidebar()">
+        <span></span><span></span><span></span>
+      </button>
+      <div class="topbar-right">
+        <button class="theme-btn" onclick="toggleTheme()" title="Alternar tema">
+          <span id="themeIcon">&#9790;</span>
+        </button>
+        <button class="logout-btn" onclick="logout()">Sair</button>
+      </div>
+    </header>
+
+    <!-- PAGE CONTENT -->
+    <main class="page-content">
+
+      <!-- ==================== DASHBOARD ==================== -->
+      <div class="page" id="page-dashboard">
+        <div class="page-hero">
+          <h1>Bem-vindo ao ScarTech! 👋</h1>
+          <p>Gerencie sua assistência técnica de forma simples e eficiente.</p>
+        </div>
+        <div class="dashboard-cards">
+          <div class="dash-card" onclick="navigate('ordens')">
+            <div class="dash-card-icon">📋</div>
+            <div class="dash-card-body">
+              <h3>Ordens de Serviço</h3>
+              <p>Crie e gerencie ordens de serviço dos clientes</p>
+            </div>
+            <div class="dash-card-arrow">→</div>
+          </div>
+          <div class="dash-card" onclick="navigate('faturamento')">
+            <div class="dash-card-icon">💰</div>
+            <div class="dash-card-body">
+              <h3>Faturamento</h3>
+              <p>Acompanhe suas receitas e balanço mensal</p>
+            </div>
+            <div class="dash-card-arrow">→</div>
+          </div>
+          <div class="dash-card" onclick="navigate('produtos')">
+            <div class="dash-card-icon">📦</div>
+            <div class="dash-card-body">
+              <h3>Produtos</h3>
+              <p>Controle de estoque e catálogo</p>
+            </div>
+            <div class="dash-card-arrow">→</div>
+          </div>
+          <div class="dash-card" onclick="navigate('vendas')">
+            <div class="dash-card-icon">🛒</div>
+            <div class="dash-card-body">
+              <h3>Vendas</h3>
+              <p>Registre e gerencie vendas de produtos</p>
+            </div>
+            <div class="dash-card-arrow">→</div>
+          </div>
+        </div>
+
+        <div class="dashboard-stats">
+          <div class="stat-card">
+            <div class="stat-icon" style="background:rgba(99,102,241,.12)">📋</div>
+            <div class="stat-info">
+              <span class="stat-value purple" id="dashOrdens">0</span>
+              <span class="stat-label">Ordens de Serviço</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="background:rgba(14,159,170,.12)">💰</div>
+            <div class="stat-info">
+              <span class="stat-value teal" id="dashFaturamento">R$ 0,00</span>
+              <span class="stat-label">Faturamento Total</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="background:rgba(16,185,129,.12)">📦</div>
+            <div class="stat-info">
+              <span class="stat-value green" id="dashProdutos">0</span>
+              <span class="stat-label">Produtos Cadastrados</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="background:rgba(245,158,11,.12)">🛒</div>
+            <div class="stat-info">
+              <span class="stat-value amber" id="dashVendas">0</span>
+              <span class="stat-label">Vendas Realizadas</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- ===================== MODAIS ===================== -->
+
+  <!-- Modal Novo Produto -->
+  <div class="modal-overlay hidden" id="modal-novo-produto">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>📦 Novo Produto</h3>
+        <button class="modal-close" onclick="closeModal('modal-novo-produto')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Nome do Produto *</label>
+            <input type="text" class="form-input" id="prodNome" placeholder="Ex: Tela iPhone 13 Original" />
+          </div>
+          <div class="form-group">
+            <label>Categoria</label>
+            <select class="form-input" id="prodCategoria">
+              <option value="Peças">Peças</option>
+              <option value="Acessórios">Acessórios</option>
+              <option value="Serviços">Serviços</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Estoque</label>
+            <input type="number" class="form-input" id="prodEstoque" placeholder="0" min="0" />
+          </div>
+          <div class="form-group">
+            <label>Preço de Venda (R$)</label>
+            <input type="number" class="form-input" id="prodPreco" placeholder="0,00" min="0" step="0.01" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Preço de Compra (R$)</label>
+            <input type="number" class="form-input" id="prodCusto" placeholder="0,00" min="0" step="0.01" required />
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeModal('modal-novo-produto')">Cancelar</button>
+        <button class="btn-primary" onclick="salvarProduto()">Salvar Produto</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Nova Venda -->
+  <div class="modal-overlay hidden" id="modal-nova-venda">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>🛒 Nova Venda</h3>
+        <button class="modal-close" onclick="closeModal('modal-nova-venda')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Cliente *</label>
+            <input type="text" class="form-input" id="vendaCliente" placeholder="Nome do cliente" />
+          </div>
+          <div class="form-group">
+            <label>Produto *</label>
+            <select class="form-input" id="vendaProduto" onchange="atualizarPrecoVenda()"></select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Quantidade</label>
+            <input type="number" class="form-input" id="vendaQtd" placeholder="1" min="1" oninput="atualizarPrecoVenda()" />
+          </div>
+          <div class="form-group">
+            <label>Valor Total (R$)</label>
+            <input type="number" class="form-input" id="vendaValor" placeholder="0,00" min="0" step="0.01" />
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeModal('modal-nova-venda')">Cancelar</button>
+        <button class="btn-primary" onclick="salvarVenda()">Registrar Venda</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="toast" id="toast"></div>
+
+  <!-- Auth Guard & Supabase -->
+  <script src="supabasecliente.js"></script>
+  <script src="auth-guard.js"></script>
+  <script src="app.js?v=20260329d"></script>
+</body>
+
+</html>
+
+
+
+

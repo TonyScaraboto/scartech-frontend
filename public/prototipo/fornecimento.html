@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8" />
+    <script>(function () { var t = localStorage.getItem('scartech_theme'); document.documentElement.setAttribute('data-theme', t === 'dark' ? 'dark' : 'light'); if (t === 'dark') document.documentElement.style.colorScheme = 'dark'; })()</script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ScarTech — Meu Fornecimento</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Sora:wght@400;600;700&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="style.css?v=20260329d" />
+</head>
+
+<body>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-logo">
+            <img src="/logo.png" alt="ScarTech" style="width:36px;height:36px;border-radius:8px;" />
+            <span class="logo-text">ScarTech</span>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <span class="nav-label">PRINCIPAL</span>
+                <a class="nav-item" data-page="dashboard" href="dashboard.html">
+                    <span class="nav-icon">🏠</span>
+                    <span class="nav-text">Dashboard</span>
+                </a>
+                <a class="nav-item" data-page="faturamento" href="faturamento.html">
+                    <span class="nav-icon">💰</span>
+                    <span class="nav-text">Faturamento</span>
+                </a>
+            </div>
+            <div class="nav-section">
+                <span class="nav-label">GESTÃO</span>
+                <a class="nav-item" data-page="ordens" href="ordens.html">
+                    <span class="nav-icon">📋</span>
+                    <span class="nav-text">Ordens de Serviço</span>
+                </a>
+                <a class="nav-item" data-page="produtos" href="produtos.html">
+                    <span class="nav-icon">📦</span>
+                    <span class="nav-text">Produtos</span>
+                </a>
+                <a class="nav-item" data-page="fornecedores" href="fornecedores.html">
+                    <span class="nav-icon">🤝</span>
+                    <span class="nav-text">Fornecedores</span>
+                </a>
+                <a class="nav-item" data-page="vendas" href="vendas.html">
+                    <span class="nav-icon">🛒</span>
+                    <span class="nav-text">Vendas</span>
+                </a>
+            </div>
+            <!-- Item exclusivo para fornecedores — exibido via JS -->
+            <div class="nav-section" id="nav-fornecimento-section" style="display:none;">
+                <span class="nav-label">FORNECEDOR</span>
+                <a class="nav-item active" data-page="fornecimento" href="fornecimento.html">
+                    <span class="nav-icon">🏭</span>
+                    <span class="nav-text">Meu Fornecimento</span>
+                </a>
+            </div>
+        </nav>
+
+        <div class="sidebar-footer">
+            <a class="user-card user-card-link" href="perfil.html">
+                <div class="user-avatar" id="sidebarAvatar">ST</div>
+                <div class="user-info">
+                    <span class="user-name" id="sidebarNome">Modo Teste</span>
+                    <span class="user-role">Meu perfil →</span>
+                </div>
+            </a>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-wrapper" id="mainWrapper">
+        <!-- TOP BAR -->
+        <header class="topbar">
+            <button class="menu-toggle" id="menuToggle" onclick="toggleSidebar()">
+                <span></span><span></span><span></span>
+            </button>
+            <div class="topbar-right">
+                <button class="theme-btn" onclick="toggleTheme()" title="Alternar tema">
+                    <span id="themeIcon">&#9790;</span>
+                </button>
+                <button class="logout-btn" onclick="logout()">Sair</button>
+            </div>
+        </header>
+
+        <!-- PAGE CONTENT -->
+        <main class="page-content">
+            <div class="page" id="page-fornecimento">
+                <div class="page-header-simple">
+                    <h2 class="page-title">🏭 Meu Fornecimento</h2>
+                    <p class="page-sub">Gerencie seu perfil de fornecedor e catálogo de produtos</p>
+                </div>
+
+                <div class="dashboard-grid" style="grid-template-columns: 1fr 2fr; gap: 24px; align-items: start;">
+                    
+                    <!-- PERFIL DO FORNECEDOR -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>🏪 Perfil da Loja</h3>
+                        </div>
+                        <div class="card-body">
+                            <form id="formPerfilFornecedor" style="display: flex; flex-direction: column; gap: 16px;">
+                                <div class="form-group">
+                                    <label class="form-label">Nome da Loja</label>
+                                    <input type="text" id="storeName" class="form-input" placeholder="Ex: ScarParts Distribuidora" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Sinopse / Descrição</label>
+                                    <textarea id="storeSynopsis" class="form-input" style="min-height: 80px; resize: vertical;" placeholder="Conte um pouco sobre sua loja..."></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">E-mail de Contato</label>
+                                    <input type="email" id="storeContact" class="form-input" placeholder="contato@loja.com" required>
+                                </div>
+                                <div class="row-between" style="gap: 12px;">
+                                    <div class="form-group" style="flex: 2;">
+                                        <label class="form-label">Cidade</label>
+                                        <input type="text" id="storeCity" class="form-input" placeholder="Sua cidade">
+                                    </div>
+                                    <div class="form-group" style="flex: 1;">
+                                        <label class="form-label">Estado</label>
+                                        <input type="text" id="storeState" class="form-input" placeholder="UF" maxlength="2">
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn-primary" style="width: 100%; margin-top: 8px;">Atualizar Perfil</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- LISTA DE PRODUTOS -->
+                    <div class="card">
+                        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                            <h3>📦 Meus Produtos</h3>
+                            <button class="btn-primary" style="font-size: 0.85rem; padding: 6px 12px;" onclick="openAddProductModal()">+ Novo Produto</button>
+                        </div>
+                        <div class="card-body" style="padding: 0;">
+                            <div class="table-responsive">
+                                <table class="table" id="tableProdutos">
+                                    <thead>
+                                        <tr>
+                                            <th>Produto</th>
+                                            <th>Preço</th>
+                                            <th>Entrega</th>
+                                            <th>Frete</th>
+                                            <th style="width: 80px;">Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="listaProdutosBody">
+                                        <!-- Preenchido via JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL NOVO/EDITAR PRODUTO -->
+    <div class="modal-overlay hidden" id="modalProduto">
+        <div class="modal" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3 id="modalTitle">Novo Produto</h3>
+                <button class="modal-close" onclick="closeProductModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <form id="formProduto" style="display: flex; flex-direction: column; gap: 16px;">
+                    <input type="hidden" id="editProdId">
+                    <div class="form-group">
+                        <label class="form-label">Nome do Produto</label>
+                        <input type="text" id="prodName" class="form-input" placeholder="Ex: Tela iPhone 13 Original" required>
+                    </div>
+                    <div class="row-between" style="gap: 16px;">
+                        <div class="form-group" style="flex: 1;">
+                            <label class="form-label">Preço (R$)</label>
+                            <input type="number" step="0.01" id="prodPrice" class="form-input" placeholder="0.00" required>
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label class="form-label">Preço Frete (R$)</label>
+                            <input type="number" step="0.01" id="prodFreight" class="form-input" placeholder="0.00" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Tempo de Entrega</label>
+                        <input type="text" id="prodDelivery" class="form-input" placeholder="Ex: 2 a 5 dias úteis" required>
+                    </div>
+                    <div class="modal-footer" style="padding: 20px 0 0 0; border-top: none;">
+                        <button type="button" class="btn-secondary" onclick="closeProductModal()">Cancelar</button>
+                        <button type="submit" class="btn-primary" id="btnSalvarProduto">Salvar Produto</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast"></div>
+
+    <!-- Auth Guard & Supabase -->
+    <script src="supabasecliente.js"></script>
+    <script src="auth-guard.js"></script>
+    <script src="app.js?v=20260329d"></script>
+
+    <script>
+        /* ============================================================
+           LÓGICA MEU FORNECIMENTO
+           ============================================================ */
+        
+        let currentUser = null;
+        let productsList = [];
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!window.supabase) return;
+            
+            const { data: { user } } = await window.supabase.auth.getUser();
+            currentUser = user;
+            
+            if (user) {
+                await loadStoreProfile();
+                await loadProducts();
+            }
+        });
+
+        // Carregar Perfil da Loja (do metadata ou da última entrada na tabela)
+        async function loadStoreProfile() {
+            if (!currentUser) return;
+            
+            // Tenta pegar do metadata primeiro
+            const meta = currentUser.user_metadata || {};
+            document.getElementById('storeName').value = meta.store_name || currentUser.user_metadata.full_name || '';
+            document.getElementById('storeContact').value = meta.store_contact || currentUser.email || '';
+            document.getElementById('storeCity').value = meta.store_city || '';
+            document.getElementById('storeState').value = meta.store_state || '';
+            document.getElementById('storeSynopsis').value = meta.store_synopsis || '';
+        }
+
+        // Atualizar Perfil
+        document.getElementById('formPerfilFornecedor').onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button');
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = 'Salvando...';
+
+            const storeData = {
+                store_name: document.getElementById('storeName').value,
+                store_synopsis: document.getElementById('storeSynopsis').value,
+                store_contact: document.getElementById('storeContact').value,
+                store_city: document.getElementById('storeCity').value,
+                store_state: document.getElementById('storeState').value
+            };
+
+            try {
+                const { error } = await window.supabase.auth.updateUser({
+                    data: storeData
+                });
+
+                if (error) throw error;
+                showToast('Perfil da loja atualizado! ✅');
+                
+                // Se houver produtos, atualizar o nome do fornecedor neles também (opcional dependendo da lógica)
+                // Para este protótipo, vamos assumir que o nome do fornecedor é puxado na hora de criar o produto.
+                
+            } catch (err) {
+                console.error(err);
+                showToast('Erro ao atualizar perfil.', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = originalText;
+            }
+        };
+
+        // Carregar Produtos
+        async function loadProducts() {
+            const tbody = document.getElementById('listaProdutosBody');
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px;">Carregando...</td></tr>';
+
+            try {
+                // Filtramos produtos pelo contato (email) do fornecedor para simplicidade no protótipo
+                // Idealmente teríamos um user_id na tabela fornecedores_produtos
+                const { data, error } = await window.supabase
+                    .from('fornecedores_produtos')
+                    .select('*')
+                    .eq('contato', currentUser.email)
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                productsList = data || [];
+                renderProducts();
+
+            } catch (err) {
+                console.error(err);
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:var(--red);">Erro ao carregar produtos.</td></tr>';
+            }
+        }
+
+        function renderProducts() {
+            const tbody = document.getElementById('listaProdutosBody');
+            if (productsList.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px;">Nenhum produto cadastrado.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = productsList.map(p => `
+                <tr>
+                    <td style="font-weight:600;">${p.nome_produto}</td>
+                    <td style="color:var(--text-primary);">R$ ${Number(p.preco).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+                    <td>${p.tempo_entrega}</td>
+                    <td style="color:var(--text-muted); font-size: 0.85rem;">R$ ${Number(p.preco_frete).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+                    <td>
+                        <div style="display:flex; gap:8px;">
+                            <button class="btn-icon" onclick="openEditProductModal(${p.id})" title="Editar">✏️</button>
+                            <button class="btn-icon danger" onclick="deleteProduct(${p.id})" title="Excluir">🗑️</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Modais
+        function openAddProductModal() {
+            document.getElementById('modalTitle').textContent = 'Novo Produto';
+            document.getElementById('formProduto').reset();
+            document.getElementById('editProdId').value = '';
+            document.getElementById('modalProduto').classList.remove('hidden');
+        }
+
+        function openEditProductModal(id) {
+            const p = productsList.find(x => x.id === id);
+            if (!p) return;
+
+            document.getElementById('modalTitle').textContent = 'Editar Produto';
+            document.getElementById('editProdId').value = p.id;
+            document.getElementById('prodName').value = p.nome_produto;
+            document.getElementById('prodPrice').value = p.preco;
+            document.getElementById('prodFreight').value = p.preco_frete;
+            document.getElementById('prodDelivery').value = p.tempo_entrega;
+            
+            document.getElementById('modalProduto').classList.remove('hidden');
+        }
+
+        function closeProductModal() {
+            document.getElementById('modalProduto').classList.add('hidden');
+        }
+
+        // Salvar Produto (Add/Edit)
+        document.getElementById('formProduto').onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btnSalvarProduto');
+            btn.disabled = true;
+            btn.textContent = 'Salvando...';
+
+            const editId = document.getElementById('editProdId').value;
+            const productData = {
+                nome_fornecedor: document.getElementById('storeName').value || currentUser.user_metadata.full_name,
+                nome_produto: document.getElementById('prodName').value,
+                preco: parseFloat(document.getElementById('prodPrice').value),
+                preco_frete: parseFloat(document.getElementById('prodFreight').value),
+                tempo_entrega: document.getElementById('prodDelivery').value,
+                contato: document.getElementById('storeContact').value || currentUser.email,
+                cidade: document.getElementById('storeCity').value,
+                estado: document.getElementById('storeState').value,
+                sinopse: document.getElementById('storeSynopsis').value // Campo novo adicionado via SQL
+            };
+
+            try {
+                let error;
+                if (editId) {
+                    const { error: err } = await window.supabase
+                        .from('fornecedores_produtos')
+                        .update(productData)
+                        .eq('id', editId);
+                    error = err;
+                } else {
+                    const { error: err } = await window.supabase
+                        .from('fornecedores_produtos')
+                        .insert([productData]);
+                    error = err;
+                }
+
+                if (error) throw error;
+
+                showToast(editId ? 'Produto atualizado! ✅' : 'Produto cadastrado! ✅');
+                closeProductModal();
+                await loadProducts();
+
+            } catch (err) {
+                console.error(err);
+                showToast('Erro ao salvar produto.', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Salvar Produto';
+            }
+        };
+
+        // Excluir Produto
+        async function deleteProduct(id) {
+            if (!confirm('Tem certeza que deseja excluir este produto?')) return;
+
+            try {
+                const { error } = await window.supabase
+                    .from('fornecedores_produtos')
+                    .delete()
+                    .eq('id', id);
+
+                if (error) throw error;
+                showToast('Produto removido. 🗑️');
+                await loadProducts();
+            } catch (err) {
+                console.error(err);
+                showToast('Erro ao excluir produto.', 'error');
+            }
+        }
+
+        function showToast(msg, type = 'success') {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.className = `toast show ${type === 'error' ? 'error' : ''}`;
+            setTimeout(() => t.classList.remove('show'), 3000);
+        }
+    </script>
+</body>
+
+</html>

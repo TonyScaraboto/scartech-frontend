@@ -1,0 +1,60 @@
+---
+import "../styles/theme.css";
+---
+
+<html lang="pt-BR" data-theme="dark">
+  <head>
+    <title>ScarTech — Entrar</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0f172a" />
+    <link rel="icon" type="image/png" href="/logo.png" />
+    <style>
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background: #f0f4f7;
+        font-family: "Plus Jakarta Sans", "Segoe UI", system-ui, sans-serif;
+        color: #637083;
+      }
+    </style>
+  </head>
+  <body>
+    <p style="margin: 0; font-size: 0.95rem">Abrindo o login…</p>
+    <script is:inline src="/js/scartech-cloud.js"></script>
+    <script>
+      import { getSupabaseBrowser } from "../lib/supabase-browser";
+
+      const supabase = getSupabaseBrowser();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (session) {
+        if (session.user?.email && window.ScartechCloud) {
+          await window.ScartechCloud.init(session.user.email, session.access_token);
+          try {
+            await window.ScartechCloud.loadAll();
+          } catch (e) {
+            console.warn(e);
+          }
+        }
+        let dest = "/prototipo/dashboard.html";
+        try {
+          const { data: prof } = await supabase
+            .from("profiles")
+            .select("category")
+            .maybeSingle();
+          if (prof?.category === "fornecedor") {
+            dest = "/prototipo/fornecimento.html";
+          }
+        } catch (_) {}
+        window.location.replace(dest);
+      } else {
+        window.location.replace("/prototipo/index.html");
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8" />
+  <script>(function(){var t=localStorage.getItem('scartech_theme');document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');if(t==='dark')document.documentElement.style.colorScheme='dark';})()</script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ScarTech — Ordens de Serviço</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Sora:wght@400;600;700&display=swap"
+    rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <link rel="stylesheet" href="style.css?v=20260329d" />
+</head>
+
+<body>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <img src="/logo.png" alt="ScarTech" style="width:36px;height:36px;border-radius:8px;" />
+      <span class="logo-text">ScarTech</span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <span class="nav-label">PRINCIPAL</span>
+        <a class="nav-item" data-page="dashboard" href="dashboard.html">
+          <span class="nav-icon">🏠</span>
+          <span class="nav-text">Dashboard</span>
+        </a>
+        <a class="nav-item" data-page="faturamento" href="faturamento.html">
+          <span class="nav-icon">💰</span>
+          <span class="nav-text">Faturamento</span>
+        </a>
+      </div>
+      <div class="nav-section">
+        <span class="nav-label">GESTÃO</span>
+        <a class="nav-item active" data-page="ordens" href="ordens.html">
+          <span class="nav-icon">📋</span>
+          <span class="nav-text">Ordens de Serviço</span>
+        </a>
+        <a class="nav-item" data-page="produtos" href="produtos.html">
+          <span class="nav-icon">📦</span>
+          <span class="nav-text">Produtos</span>
+        </a>
+        <a class="nav-item" data-page="fornecedores" href="fornecedores.html">
+          <span class="nav-icon">🤝</span>
+          <span class="nav-text">Fornecedores</span>
+        </a>
+        <a class="nav-item" data-page="vendas" href="vendas.html">
+          <span class="nav-icon">🛒</span>
+          <span class="nav-text">Vendas</span>
+        </a>
+      </div>
+      <!-- Item exclusivo para fornecedores - exibido via JS -->
+      <div class="nav-section" id="nav-fornecimento-section" style="display:none;">
+        <span class="nav-label">FORNECEDOR</span>
+        <a class="nav-item" data-page="fornecimento" href="fornecimento.html">
+          <span class="nav-icon">🏭</span>
+          <span class="nav-text">Meu Fornecimento</span>
+        </a>
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <a class="user-card user-card-link" href="perfil.html">
+        <div class="user-avatar" id="sidebarAvatar">ST</div>
+        <div class="user-info">
+          <span class="user-name" id="sidebarNome">Modo Teste</span>
+          <span class="user-role">Meu perfil →</span>
+        </div>
+      </a>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <div class="main-wrapper" id="mainWrapper">
+    <!-- TOP BAR -->
+    <header class="topbar">
+      <button class="menu-toggle" id="menuToggle" onclick="toggleSidebar()">
+        <span></span><span></span><span></span>
+      </button>
+      <div class="topbar-right">
+        <button class="theme-btn" onclick="toggleTheme()" title="Alternar tema">
+          <span id="themeIcon">&#9790;</span>
+        </button>
+        <button class="logout-btn" onclick="logout()">Sair</button>
+      </div>
+    </header>
+
+    <!-- PAGE CONTENT -->
+    <main class="page-content">
+
+      <!-- ==================== ORDENS ==================== -->
+      <div class="page" id="page-ordens">
+        <div class="page-header">
+          <div>
+            <h2 class="page-title">📋 Ordens de Serviço</h2>
+            <p class="page-sub">Gerencie as ordens de serviço dos clientes</p>
+          </div>
+          <div style="display: flex; gap: 10px;">
+            <button class="btn-secondary" onclick="exportarOrdensCSV()">📥 Exportar CSV</button>
+            <button class="btn-primary" onclick="abrirNovaOrdem()">+ Nova Ordem</button>
+          </div>
+        </div>
+
+        <div class="filter-bar">
+          <input class="search-input" type="text" placeholder="🔍  Buscar ordem..." id="searchOrdem"
+            oninput="filterOrdens()" />
+          <select class="filter-select" id="filterStatus" onchange="filterOrdens()">
+            <option value="">Todos os status</option>
+            <option value="Aberta">Aberta</option>
+            <option value="Em andamento">Em andamento</option>
+            <option value="Concluída">Concluída</option>
+            <option value="Cancelada">Cancelada</option>
+          </select>
+        </div>
+
+        <div class="table-card">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Nº</th>
+                <th>Cliente</th>
+                <th>Equipamento</th>
+                <th>Status</th>
+                <th>Data</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyOrdens">
+              <tr class="empty-row">
+                <td colspan="6">
+                  <div class="empty-state">
+                    <span class="empty-icon">📋</span>
+                    <p>Nenhuma ordem de serviço cadastrada</p>
+                    <button class="btn-primary btn-sm" onclick="abrirNovaOrdem()">Criar primeira ordem</button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <button class="btn-back" onclick="window.location.href='dashboard.html'">← Voltar ao Dashboard</button>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- ===================== MODAIS ===================== -->
+
+  <!-- Modal Nova Ordem -->
+  <div class="modal-overlay hidden" id="modal-nova-ordem">
+    <div class="modal modal-wide">
+      <div class="modal-header">
+        <h3>📋 Nova Ordem de Serviço</h3>
+        <button class="modal-close" onclick="closeModal('modal-nova-ordem')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-row">
+          <div class="form-group full">
+            <label>Nome da Assistência Técnica *</label>
+            <input type="text" class="form-input" id="nomeAssistencia" placeholder="Ex: ScarTech Solutions" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Nome do Cliente *</label>
+            <input type="text" class="form-input" id="nomeCliente" placeholder="Nome do cliente" />
+          </div>
+          <div class="form-group">
+            <label>Documento (CPF/RG) *</label>
+            <input type="text" class="form-input" id="documentoCliente" placeholder="000.000.000-00" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Telefone *</label>
+            <input type="text" class="form-input" id="telefoneCliente" placeholder="(00) 00000-0000" />
+          </div>
+          <div class="form-group">
+            <label>Modelo do Aparelho *</label>
+            <input type="text" class="form-input" id="modeloAparelho" placeholder="Ex: iPhone 13 Pro" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group full">
+            <label>Defeito Apresentado *</label>
+            <input type="text" class="form-input" id="defeitoApresentado" placeholder="Descreva o problema do aparelho" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group full">
+            <label>Termo de Garantia *</label>
+            <textarea class="form-input form-textarea" id="termoGarantia">Garantia de 90 dias para o serviço realizado, conforme legislação vigente. A garantia não cobre danos causados por mau uso, quedas, contato com líquidos ou tentativa de reparo por terceiros.</textarea>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Valor do Conserto (R$) *</label>
+            <input type="number" class="form-input" id="valorConserto" placeholder="0,00" min="0" step="0.01" />
+          </div>
+          <div class="form-group">
+            <label>Previsão de Entrega</label>
+            <input type="date" class="form-input" id="previsaoEntrega" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Status</label>
+            <select class="form-input" id="ordemStatus">
+              <option value="Aberta">Aberta</option>
+              <option value="Em andamento">Em andamento</option>
+              <option value="Concluída">Concluída</option>
+              <option value="Cancelada">Cancelada</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group full">
+          <label>📷 Foto do Aparelho</label>
+          <div class="photo-upload-area" id="photoUploadArea">
+            <input type="file" id="fotoAparelho" accept="image/*" />
+            <div id="uploadPlaceholder" class="photo-upload-text">Clique para selecionar uma foto do aparelho</div>
+            <img id="photoPreview" class="photo-preview" alt="Preview da foto" />
+          </div>
+          <div class="photo-actions">
+            <button type="button" class="btn-secondary btn-sm" onclick="removerFotoAparelho()">Remover foto</button>
+          </div>
+        </div>
+
+        <div class="signature-section">
+          <h4>✍️ Assinaturas</h4>
+          <div class="signatures-grid">
+            <div class="signature-pad-container">
+              <label>Assinatura do Técnico</label>
+              <canvas id="signatureTecnico" class="signature-canvas"></canvas>
+              <div class="signature-actions">
+                <button type="button" class="btn-secondary btn-sm" onclick="limparAssinatura('Tecnico')">Limpar</button>
+              </div>
+            </div>
+            <div class="signature-pad-container">
+              <label>Assinatura do Cliente</label>
+              <canvas id="signatureCliente" class="signature-canvas"></canvas>
+              <div class="signature-actions">
+                <button type="button" class="btn-secondary btn-sm" onclick="limparAssinatura('Cliente')">Limpar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="ordemPdfResult" class="pdf-result"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeModal('modal-nova-ordem')">Cancelar</button>
+        <button class="btn-primary" onclick="salvarOrdem()">Salvar e Gerar PDF</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Detalhes da Ordem -->
+  <div class="modal-overlay hidden" id="modal-detalhes-ordem">
+    <div class="modal modal-wide">
+      <div class="modal-header">
+        <h3>Detalhes da Ordem de Serviço</h3>
+        <button class="modal-close" onclick="closeModal('modal-detalhes-ordem')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div id="ordemDetalhesContent" class="ordem-detalhes-content"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-primary" onclick="regerarPdfOrdemAtual()">Regerar PDF</button>
+        <button class="btn-secondary" onclick="closeModal('modal-detalhes-ordem')">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="toast" id="toast"></div>
+
+  <!-- Auth Guard & Supabase -->
+  <script src="supabasecliente.js"></script>
+  <script src="auth-guard.js"></script>
+  <script src="app.js?v=20260329d"></script>
+</body>
+
+</html>

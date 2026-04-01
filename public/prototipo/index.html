@@ -1,0 +1,1427 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabasecliente.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+  <meta http-equiv="X-Frame-Options" content="DENY" />
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; connect-src 'self' https://*.supabase.co;" />
+  <title>ScarTech — Entrar</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Sora:wght@400;600;700;800&display=swap"
+    rel="stylesheet" />
+  <style>
+    /* =============================================
+       SCARTECH — LOGIN PAGE
+       Tema: Teal Refined / Split Layout
+       ============================================= */
+    :root {
+      --primary: #0E9FAA;
+      --primary-dark: #0A7A83;
+      --primary-light: #E0F7F9;
+      --primary-glow: rgba(14, 159, 170, 0.18);
+
+      --bg: #F0F4F7;
+      --bg-card: #FFFFFF;
+      --border: #E2EAF0;
+
+      --text-primary: #1A2535;
+      --text-secondary: #637083;
+      --text-muted: #9DAAB8;
+
+      --red: #EF4444;
+      --green: #10B981;
+      --amber: #F59E0B;
+
+      --shadow-md: 0 8px 32px rgba(0, 0, 0, 0.10);
+      --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.14);
+      --radius: 16px;
+      --radius-sm: 10px;
+      --transition: 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      height: 100%;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      align-items: stretch;
+    }
+
+    /* ==================== LEFT PANEL ==================== */
+    .panel-left {
+      width: 52%;
+      background: linear-gradient(145deg, #065F7C 0%, #0E9FAA 45%, #0FC8B5 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 60px 72px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Geometric background shapes */
+    .panel-left::before {
+      content: '';
+      position: absolute;
+      width: 420px;
+      height: 420px;
+      border-radius: 50%;
+      border: 80px solid rgba(255, 255, 255, 0.06);
+      top: -120px;
+      right: -120px;
+      animation: floatA 8s ease-in-out infinite;
+    }
+
+    .panel-left::after {
+      content: '';
+      position: absolute;
+      width: 280px;
+      height: 280px;
+      border-radius: 50%;
+      border: 50px solid rgba(255, 255, 255, 0.05);
+      bottom: -80px;
+      left: -80px;
+      animation: floatB 10s ease-in-out infinite;
+    }
+
+    @keyframes floatA {
+
+      0%,
+      100% {
+        transform: translate(0, 0) rotate(0deg);
+      }
+
+      50% {
+        transform: translate(20px, -20px) rotate(10deg);
+      }
+    }
+
+    @keyframes floatB {
+
+      0%,
+      100% {
+        transform: translate(0, 0);
+      }
+
+      50% {
+        transform: translate(-15px, 15px);
+      }
+    }
+
+    /* Dot grid */
+    .dot-grid {
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(circle, rgba(255, 255, 255, 0.12) 1px, transparent 1px);
+      background-size: 32px 32px;
+      pointer-events: none;
+    }
+
+    .panel-left-content {
+      position: relative;
+      z-index: 2;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 56px;
+      animation: slideInLeft 0.6s ease both;
+    }
+
+    .brand-logo {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    }
+
+    .brand-name {
+      font-family: 'Sora', sans-serif;
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: white;
+      letter-spacing: -0.5px;
+    }
+
+    .hero-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.9);
+      letter-spacing: 0.04em;
+      margin-bottom: 22px;
+      animation: slideInLeft 0.6s 0.1s ease both;
+    }
+
+    .hero-title {
+      font-family: 'Sora', sans-serif;
+      font-size: 2.8rem;
+      font-weight: 800;
+      color: white;
+      line-height: 1.18;
+      letter-spacing: -1px;
+      margin-bottom: 20px;
+      animation: slideInLeft 0.6s 0.2s ease both;
+    }
+
+    .hero-title span {
+      color: rgba(255, 255, 255, 0.55);
+    }
+
+    .hero-desc {
+      font-size: 1rem;
+      color: rgba(255, 255, 255, 0.72);
+      line-height: 1.7;
+      max-width: 380px;
+      margin-bottom: 48px;
+      animation: slideInLeft 0.6s 0.3s ease both;
+    }
+
+    .feature-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      animation: slideInLeft 0.6s 0.4s ease both;
+    }
+
+    .feature-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .feature-dot {
+      width: 34px;
+      height: 34px;
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+
+    .feature-item span {
+      font-size: 0.9rem;
+      color: rgba(255, 255, 255, 0.8);
+      font-weight: 500;
+    }
+
+    @keyframes slideInLeft {
+      from {
+        opacity: 0;
+        transform: translateX(-24px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    /* ==================== RIGHT PANEL ==================== */
+    .panel-right {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 40px 60px;
+      background: var(--bg-card);
+      position: relative;
+      overflow-y: auto;
+    }
+
+    .login-box {
+      width: 100%;
+      max-width: 400px;
+      margin: auto;
+      animation: slideInRight 0.6s 0.15s ease both;
+    }
+
+    .mobile-brand {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+
+    .mobile-brand img {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+    }
+
+    .mobile-brand span {
+      font-family: 'Sora', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--primary);
+      letter-spacing: -0.3px;
+    }
+
+    @keyframes slideInRight {
+      from {
+        opacity: 0;
+        transform: translateX(24px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    .login-header {
+      margin-bottom: 36px;
+    }
+
+    .login-header h2 {
+      font-family: 'Sora', sans-serif;
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+      letter-spacing: -0.4px;
+    }
+
+    .login-header p {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      line-height: 1.6;
+    }
+
+    /* TABS */
+    .auth-tabs {
+      display: flex;
+      gap: 2px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 4px;
+      margin-bottom: 28px;
+    }
+
+    .auth-tab {
+      flex: 1;
+      padding: 9px;
+      text-align: center;
+      border-radius: 7px;
+      border: none;
+      background: transparent;
+      font-family: inherit;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+
+    .auth-tab.active {
+      background: white;
+      color: var(--primary);
+      font-weight: 700;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+    }
+
+    /* ROLE SELECTION */
+    .role-selection {
+      margin-bottom: 8px;
+    }
+
+    .role-cards {
+      display: flex;
+      flex-direction: row;
+      gap: 12px;
+    }
+
+    .role-card {
+      flex: 1;
+      position: relative;
+      cursor: pointer;
+    }
+
+    .role-card input[type="radio"] {
+      position: absolute;
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .role-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 8px;
+      padding: 16px 12px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--bg);
+      transition: all var(--transition);
+      height: 100%;
+    }
+
+    .role-card input[type="radio"]:checked + .role-content {
+      border-color: var(--primary);
+      background: var(--primary-light);
+      box-shadow: 0 0 0 3px var(--primary-glow);
+    }
+
+    .role-icon {
+      font-size: 1.8rem;
+    }
+
+    .role-text {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .role-text strong {
+      font-size: 0.9rem;
+      color: var(--text-primary);
+    }
+
+    .role-text p {
+      font-size: 0.72rem;
+      color: var(--text-secondary);
+      line-height: 1.3;
+    }
+
+    /* FORMS */
+    .auth-form {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .auth-form.hidden {
+      display: none;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .form-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      letter-spacing: 0.02em;
+    }
+
+    .input-wrap {
+      position: relative;
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1rem;
+      pointer-events: none;
+      opacity: 0.5;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 12px 14px 12px 40px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--bg);
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 0.9rem;
+      outline: none;
+      transition: all var(--transition);
+    }
+
+    .form-input:focus {
+      border-color: var(--primary);
+      background: white;
+      box-shadow: 0 0 0 3px var(--primary-glow);
+    }
+
+    .form-input.error {
+      border-color: var(--red);
+      box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+    }
+
+    .form-input.success {
+      border-color: var(--green);
+    }
+
+    /* Strength bar */
+    .strength-wrap {
+      margin-top: 6px;
+    }
+
+    .strength-bar {
+      height: 4px;
+      border-radius: 4px;
+      background: var(--border);
+      overflow: hidden;
+    }
+
+    .strength-fill {
+      height: 100%;
+      border-radius: 4px;
+      width: 0%;
+      transition: width 0.4s ease, background 0.4s ease;
+    }
+
+    .strength-label {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* Toggle senha */
+    .toggle-pass {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 0.95rem;
+      opacity: 0.45;
+      transition: opacity var(--transition);
+      padding: 4px;
+    }
+
+    .toggle-pass:hover {
+      opacity: 0.8;
+    }
+
+    /* Forgot + remember */
+    .row-between {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .checkbox-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+    }
+
+    .checkbox-wrap input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--primary);
+      cursor: pointer;
+    }
+
+    .checkbox-wrap label {
+      font-size: 0.83rem;
+      color: var(--text-secondary);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .forgot-link {
+      font-size: 0.83rem;
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity var(--transition);
+    }
+
+    .forgot-link:hover {
+      opacity: 0.75;
+    }
+
+    /* SUBMIT BUTTON */
+    .btn-submit {
+      width: 100%;
+      padding: 13px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: inherit;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all var(--transition);
+      box-shadow: 0 4px 16px rgba(14, 159, 170, 0.35);
+      position: relative;
+      overflow: hidden;
+      letter-spacing: 0.02em;
+    }
+
+    .btn-submit::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.12), transparent);
+      opacity: 0;
+      transition: opacity var(--transition);
+    }
+
+    .btn-submit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(14, 159, 170, 0.45);
+    }
+
+    .btn-submit:hover::after {
+      opacity: 1;
+    }
+
+    .btn-submit:active {
+      transform: translateY(0);
+    }
+
+    .btn-submit:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* LOADING SPINNER */
+    .spinner {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      border: 2.5px solid rgba(255, 255, 255, 0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* ALERT */
+    .alert {
+      padding: 11px 15px;
+      border-radius: var(--radius-sm);
+      font-size: 0.83rem;
+      font-weight: 500;
+      display: none;
+      align-items: center;
+      gap: 8px;
+      animation: slideInDown 0.25s ease;
+    }
+
+    .alert.show {
+      display: flex;
+    }
+
+    @keyframes slideInDown {
+      from {
+        opacity: 0;
+        transform: translateY(-8px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .alert-error {
+      background: rgba(239, 68, 68, 0.08);
+      border: 1.5px solid rgba(239, 68, 68, 0.2);
+      color: var(--red);
+    }
+
+    .alert-success {
+      background: rgba(16, 185, 129, 0.08);
+      border: 1.5px solid rgba(16, 185, 129, 0.2);
+      color: var(--green);
+    }
+
+    .alert-info {
+      background: rgba(14, 159, 170, 0.08);
+      border: 1.5px solid rgba(14, 159, 170, 0.2);
+      color: var(--primary);
+    }
+
+    /* DIVIDER */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: var(--text-muted);
+      font-size: 0.78rem;
+    }
+
+    .divider::before,
+    .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* FOOTER NOTE */
+    .login-footer {
+      margin-top: 28px;
+      text-align: center;
+    }
+
+    .login-footer p {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    /* CAPTCHA VISUAL (honeypot info) */
+    .security-badge {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      margin-top: 20px;
+      padding: 8px;
+      border-radius: var(--radius-sm);
+      background: var(--bg);
+      border: 1px solid var(--border);
+    }
+
+    .security-badge span {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    /* RECOVERY PANEL */
+    .recovery-panel {
+      display: none;
+    }
+
+    .recovery-panel.show {
+      display: block;
+      animation: slideInDown 0.3s ease;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.83rem;
+      color: var(--primary);
+      cursor: pointer;
+      font-weight: 600;
+      margin-bottom: 20px;
+      background: none;
+      border: none;
+      font-family: inherit;
+      padding: 0;
+    }
+
+    .back-link:hover {
+      opacity: 0.75;
+    }
+
+    /* ==================== RESPONSIVE ==================== */
+    @media (max-width: 1100px) {
+      .panel-left { width: 45%; padding: 48px 40px; }
+      .hero-title { font-size: 2.2rem; }
+      .hero-desc { font-size: 0.9rem; max-width: 320px; }
+      .panel-right { padding: 40px 40px; }
+    }
+
+    @media (max-width: 900px) {
+      body { align-items: flex-start; }
+      .panel-left { display: none; }
+      .panel-right { padding: 40px 32px; align-items: flex-start; padding-top: 48px; }
+      .mobile-brand { display: flex; }
+      .login-header { margin-bottom: 24px; }
+      .login-header h2 { font-size: 1.5rem; }
+    }
+
+    @media (max-width: 480px) {
+      .panel-right { padding: 28px 20px; padding-top: 36px; }
+      .login-header h2 { font-size: 1.35rem; }
+      .login-header p { font-size: 0.85rem; }
+      .auth-tabs { margin-bottom: 20px; }
+      .auth-form { gap: 14px; }
+      .form-input { padding: 11px 14px 11px 38px; }
+      .btn-submit { padding: 12px; }
+      .login-footer { margin-top: 20px; }
+      .mobile-brand img { width: 36px; height: 36px; }
+      .mobile-brand span { font-size: 1.2rem; }
+    }
+
+    /* ==================== HONEYPOT (hidden) ==================== */
+    .hp-field {
+      position: absolute;
+      left: -9999px;
+      opacity: 0;
+      pointer-events: none;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ==================== PAINEL ESQUERDO ==================== -->
+  <div class="panel-left">
+    <div class="dot-grid"></div>
+    <div class="panel-left-content">
+
+      <div class="brand">
+        <img src="/logo.png" alt="ScarTech" class="brand-logo" />
+        <span class="brand-name">ScarTech</span>
+      </div>
+
+      <div class="hero-tag">⚡ Assistência Técnica Digital</div>
+
+      <h1 class="hero-title">
+        Gerencie sua<br />
+        <span>assistência</span><br />
+        com precisão.
+      </h1>
+
+      <p class="hero-desc">
+        Plataforma completa para controle de ordens de serviço, estoque, vendas e faturamento — tudo em um só lugar.
+      </p>
+
+      <div class="feature-list">
+        <div class="feature-item">
+          <div class="feature-dot">📋</div>
+          <span>Ordens de serviço inteligentes</span>
+        </div>
+        <div class="feature-item">
+          <div class="feature-dot">📦</div>
+          <span>Controle de estoque em tempo real</span>
+        </div>
+        <div class="feature-item">
+          <div class="feature-dot">💰</div>
+          <span>Relatórios financeiros detalhados</span>
+        </div>
+        <div class="feature-item">
+          <div class="feature-dot">🔒</div>
+          <span>Dados protegidos com criptografia</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ==================== PAINEL DIREITO ==================== -->
+  <div class="panel-right">
+    <div class="login-box">
+
+      <!-- LOGO MOBILE (visível quando painel esquerdo oculto) -->
+      <div class="mobile-brand">
+        <img src="/logo.png" alt="ScarTech" />
+        <span>ScarTech</span>
+      </div>
+
+      <!-- CABEÇALHO -->
+      <div class="login-header">
+        <h2>Bem-vindo de volta 👋</h2>
+        <p>Entre com sua conta para acessar o painel ScarTech.</p>
+      </div>
+
+      <!-- TABS LOGIN / CADASTRO -->
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="tabLogin" onclick="showTab('login')">Entrar</button>
+        <button class="auth-tab" id="tabCadastro" onclick="showTab('cadastro')">Criar conta</button>
+      </div>
+
+      <!-- ====== FORM LOGIN ====== -->
+      <form class="auth-form" id="formLogin" onsubmit="handleLogin(event)" autocomplete="on" novalidate>
+
+        <!-- Honeypot anti-bot -->
+        <div class="hp-field" aria-hidden="true">
+          <input type="text" name="website" tabindex="-1" autocomplete="off" id="hp_login" />
+        </div>
+
+        <!-- Alert -->
+        <div class="alert alert-error" id="alertLogin"></div>
+
+        <!-- Email -->
+        <div class="form-group">
+          <label class="form-label" for="loginEmail">E-mail</label>
+          <div class="input-wrap">
+            <span class="input-icon">📧</span>
+            <input class="form-input" type="email" id="loginEmail" name="email" placeholder="seu@email.com"
+              autocomplete="email" required oninput="clearErr('loginEmail','alertLogin')" />
+          </div>
+        </div>
+
+        <!-- Senha -->
+        <div class="form-group">
+          <label class="form-label" for="loginSenha">Senha</label>
+          <div class="input-wrap">
+            <span class="input-icon">🔒</span>
+            <input class="form-input" type="password" id="loginSenha" name="password" placeholder="••••••••"
+              autocomplete="current-password" required oninput="clearErr('loginSenha','alertLogin')" />
+            <button type="button" class="toggle-pass" onclick="toggleSenha('loginSenha', this)"
+              title="Mostrar senha">👁</button>
+          </div>
+        </div>
+
+        <!-- Lembrar / Esqueci -->
+        <div class="row-between">
+          <div class="checkbox-wrap">
+            <input type="checkbox" id="remember" name="remember" />
+            <label for="remember">Lembrar de mim</label>
+          </div>
+          <button type="button" class="forgot-link" onclick="showRecovery()">Esqueci a senha</button>
+        </div>
+
+        <button type="submit" class="btn-submit" id="btnLogin">Entrar na plataforma</button>
+
+        <div class="security-badge">
+          <span>🔐</span>
+          <span>Conexão segura · Dados criptografados</span>
+        </div>
+
+      </form>
+
+      <!-- ====== FORM CADASTRO ====== -->
+      <form class="auth-form hidden" id="formCadastro" onsubmit="handleCadastro(event)" autocomplete="on" novalidate>
+
+        <!-- Honeypot -->
+        <div class="hp-field" aria-hidden="true">
+          <input type="text" name="website2" tabindex="-1" autocomplete="off" id="hp_cadastro" />
+        </div>
+
+        <div class="alert alert-error" id="alertCadastro"></div>
+        <div class="alert alert-success" id="successCadastro"></div>
+
+        <!-- Categoria da Conta -->
+        <div class="form-group role-selection">
+          <label class="form-label">Tipo de Conta</label>
+          <div class="role-cards">
+            <label class="role-card">
+              <input type="radio" name="account_category" value="gerir_assistencia" checked />
+              <div class="role-content">
+                <span class="role-icon">🛠️</span>
+                <div class="role-text">
+                  <strong>Gerir Assistência</strong>
+                  <p>Controle de OS, estoque e finanças para sua loja.</p>
+                </div>
+              </div>
+            </label>
+            <label class="role-card">
+              <input type="radio" name="account_category" value="fornecedor" />
+              <div class="role-content">
+                <span class="role-icon">📦</span>
+                <div class="role-text">
+                  <strong>Fornecedor</strong>
+                  <p>Venda produtos e peças para assistências.</p>
+                </div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Nome -->
+        <div class="form-group">
+          <label class="form-label" for="cadNome">Nome completo</label>
+          <div class="input-wrap">
+            <span class="input-icon">👤</span>
+            <input class="form-input" type="text" id="cadNome" name="full_name" placeholder="Seu nome"
+              autocomplete="name" required oninput="clearErr('cadNome','alertCadastro')" />
+          </div>
+        </div>
+
+        <!-- Email -->
+        <div class="form-group">
+          <label class="form-label" for="cadEmail">E-mail</label>
+          <div class="input-wrap">
+            <span class="input-icon">📧</span>
+            <input class="form-input" type="email" id="cadEmail" name="email" placeholder="seu@email.com"
+              autocomplete="email" required oninput="clearErr('cadEmail','alertCadastro')" />
+          </div>
+        </div>
+
+        <!-- Senha -->
+        <div class="form-group">
+          <label class="form-label" for="cadSenha">Senha</label>
+          <div class="input-wrap">
+            <span class="input-icon">🔒</span>
+            <input class="form-input" type="password" id="cadSenha" name="password" placeholder="Mín. 8 caracteres"
+              autocomplete="new-password" required oninput="checkStrength(this.value)" />
+            <button type="button" class="toggle-pass" onclick="toggleSenha('cadSenha', this)"
+              title="Mostrar senha">👁</button>
+          </div>
+          <div class="strength-wrap">
+            <div class="strength-bar">
+              <div class="strength-fill" id="strengthFill"></div>
+            </div>
+            <p class="strength-label" id="strengthLabel">Digite uma senha segura</p>
+          </div>
+        </div>
+
+        <!-- Confirmar Senha -->
+        <div class="form-group">
+          <label class="form-label" for="cadConfirma">Confirmar senha</label>
+          <div class="input-wrap">
+            <span class="input-icon">🔒</span>
+            <input class="form-input" type="password" id="cadConfirma" name="confirm_password"
+              placeholder="Repita a senha" autocomplete="new-password" required
+              oninput="clearErr('cadConfirma','alertCadastro')" />
+            <button type="button" class="toggle-pass" onclick="toggleSenha('cadConfirma', this)"
+              title="Mostrar senha">👁</button>
+          </div>
+        </div>
+
+        <!-- Termos -->
+        <div class="checkbox-wrap">
+          <input type="checkbox" id="termos" name="terms" required />
+          <label for="termos">Concordo com os <a href="#" style="color:var(--primary);font-weight:600;">termos de
+              uso</a></label>
+        </div>
+
+        <button type="submit" class="btn-submit" id="btnCadastro">Criar minha conta</button>
+
+        <div class="security-badge">
+          <span>🔐</span>
+          <span>Senha criptografada · Dados protegidos</span>
+        </div>
+
+      </form>
+
+      <!-- ====== RECUPERAR SENHA ====== -->
+      <div class="recovery-panel" id="recoveryPanel">
+        <button class="back-link" onclick="hideRecovery()">← Voltar ao login</button>
+
+        <div class="login-header" style="margin-bottom:20px">
+          <h2>Recuperar senha 🔑</h2>
+          <p>Informe seu e-mail e enviaremos um link de redefinição.</p>
+        </div>
+
+        <form class="auth-form" id="formRecovery" onsubmit="handleRecovery(event)" novalidate style="gap:16px">
+          <div class="alert alert-success" id="alertRecovery"></div>
+          <div class="form-group">
+            <label class="form-label" for="recovEmail">E-mail da conta</label>
+            <div class="input-wrap">
+              <span class="input-icon">📧</span>
+              <input class="form-input" type="email" id="recovEmail" name="email" placeholder="seu@email.com"
+                autocomplete="email" required />
+            </div>
+          </div>
+          <button type="submit" class="btn-submit" id="btnRecovery">Enviar link de redefinição</button>
+        </form>
+      </div>
+
+      <!-- RODAPÉ -->
+      <div class="login-footer">
+        <p>© 2025 ScarTech · Assistência Técnica Digital</p>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    /* ============================================================
+       SCARTECH — LOGIN PAGE JAVASCRIPT
+       Segurança: rate limiting, honeypot, bloqueio por tentativas
+       ============================================================ */
+
+    // ==================== RATE LIMITING (client-side) ====================
+    const MAX_ATTEMPTS = 5;
+    const LOCKOUT_MS = 5 * 60 * 1000; // 5 minutos
+
+    function getRateData() {
+      try {
+        const raw = sessionStorage.getItem('st_rate');
+        return raw ? JSON.parse(raw) : { attempts: 0, lockedUntil: 0 };
+      } catch { return { attempts: 0, lockedUntil: 0 }; }
+    }
+
+    function setRateData(data) {
+      try { sessionStorage.setItem('st_rate', JSON.stringify(data)); } catch { }
+    }
+
+    function isLockedOut() {
+      const d = getRateData();
+      if (d.lockedUntil && Date.now() < d.lockedUntil) return true;
+      if (d.lockedUntil && Date.now() >= d.lockedUntil) {
+        setRateData({ attempts: 0, lockedUntil: 0 }); // reset após lockout
+      }
+      return false;
+    }
+
+    function registerAttempt() {
+      const d = getRateData();
+      d.attempts++;
+      if (d.attempts >= MAX_ATTEMPTS) {
+        d.lockedUntil = Date.now() + LOCKOUT_MS;
+      }
+      setRateData(d);
+    }
+
+    function remainingTime() {
+      const d = getRateData();
+      const secs = Math.ceil((d.lockedUntil - Date.now()) / 1000);
+      const mins = Math.floor(secs / 60);
+      const s = secs % 60;
+      return `${mins}m${s.toString().padStart(2, '0')}s`;
+    }
+
+    // ==================== HONEYPOT CHECK ====================
+    function isBot(hpId) {
+      const el = document.getElementById(hpId);
+      return el && el.value.trim().length > 0;
+    }
+
+    // ==================== FORM VALIDATION ====================
+    function showAlert(id, msg, type = 'error') {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.textContent = (type === 'error' ? '⚠️ ' : '✅ ') + msg;
+      el.className = `alert alert-${type} show`;
+    }
+
+    function hideAlert(id) {
+      const el = document.getElementById(id);
+      if (el) el.classList.remove('show');
+    }
+
+    function clearErr(inputId, alertId) {
+      document.getElementById(inputId)?.classList.remove('error');
+      hideAlert(alertId);
+    }
+
+    function markError(inputId) {
+      document.getElementById(inputId)?.classList.add('error');
+    }
+
+    function isValidEmail(email) {
+      return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim());
+    }
+
+    function sanitize(str) {
+      return str.replace(/[<>"'`]/g, '').trim();
+    }
+
+    // ==================== SENHA TOGGLE ====================
+    function toggleSenha(inputId, btn) {
+      const input = document.getElementById(inputId);
+      if (input.type === 'password') {
+        input.type = 'text';
+        btn.textContent = '🙈';
+      } else {
+        input.type = 'password';
+        btn.textContent = '👁';
+      }
+    }
+
+    // ==================== FORÇA DA SENHA ====================
+    function checkStrength(val) {
+      const fill = document.getElementById('strengthFill');
+      const label = document.getElementById('strengthLabel');
+      let score = 0;
+      if (val.length >= 8) score++;
+      if (val.length >= 12) score++;
+      if (/[A-Z]/.test(val)) score++;
+      if (/[0-9]/.test(val)) score++;
+      if (/[^A-Za-z0-9]/.test(val)) score++;
+
+      const levels = [
+        { pct: '0%', color: '', txt: 'Digite uma senha segura' },
+        { pct: '25%', color: '#EF4444', txt: '⚠️ Senha muito fraca' },
+        { pct: '50%', color: '#F59E0B', txt: '⚡ Senha fraca' },
+        { pct: '75%', color: '#3B82F6', txt: '👍 Senha razoável' },
+        { pct: '90%', color: '#10B981', txt: '✅ Senha forte' },
+        { pct: '100%', color: '#059669', txt: '🔐 Senha muito forte' },
+      ];
+
+      const lvl = levels[score] || levels[0];
+      fill.style.width = lvl.pct;
+      fill.style.background = lvl.color;
+      label.textContent = lvl.txt;
+    }
+
+    // ==================== TABS ====================
+    function showTab(tab) {
+      const isLogin = tab === 'login';
+      document.getElementById('formLogin').classList.toggle('hidden', !isLogin);
+      document.getElementById('formCadastro').classList.toggle('hidden', isLogin);
+      document.getElementById('tabLogin').classList.toggle('active', isLogin);
+      document.getElementById('tabCadastro').classList.toggle('active', !isLogin);
+      document.getElementById('recoveryPanel').classList.remove('show');
+      hideAlert('alertLogin');
+      hideAlert('alertCadastro');
+      hideAlert('successCadastro');
+    }
+
+    // ==================== RECOVERY ====================
+    function showRecovery() {
+      document.getElementById('recoveryPanel').classList.add('show');
+      document.getElementById('formLogin').style.display = 'none';
+      document.querySelector('.auth-tabs').style.display = 'none';
+      document.querySelector('.login-header').style.display = 'none';
+    }
+
+    function hideRecovery() {
+      document.getElementById('recoveryPanel').classList.remove('show');
+      document.getElementById('formLogin').style.display = '';
+      document.querySelector('.auth-tabs').style.display = '';
+      document.querySelector('.login-header').style.display = '';
+    }
+
+    // ==================== LOADING BUTTON ====================
+    function setLoading(btnId, loading, defaultText) {
+      const btn = document.getElementById(btnId);
+      btn.disabled = loading;
+      btn.innerHTML = loading
+        ? `<span class="spinner"></span>Aguarde...`
+        : defaultText;
+    }
+
+    // ==================== HANDLE LOGIN ====================
+    async function handleLogin(e) {
+      e.preventDefault();
+
+      // Honeypot (ignora preenchimento por autofill)
+      if (isBot('hp_login')) {
+        const hp = document.getElementById('hp_login');
+        if (hp) hp.value = '';
+      }
+
+      // Rate limit
+      if (isLockedOut()) {
+        showAlert('alertLogin', `Muitas tentativas. Aguarde ${remainingTime()} para tentar novamente.`);
+        return;
+      }
+
+      const email = sanitize(document.getElementById('loginEmail').value);
+      const senha = document.getElementById('loginSenha').value;
+
+      // Validação
+      if (!isValidEmail(email)) {
+        markError('loginEmail');
+        showAlert('alertLogin', 'Informe um e-mail válido.');
+        return;
+      }
+
+      if (senha.length < 6) {
+        markError('loginSenha');
+        showAlert('alertLogin', 'Informe sua senha.');
+        return;
+      }
+
+      setLoading('btnLogin', true, 'Entrar na plataforma');
+
+      try {
+        const { data, error } = await window.supabase.auth.signInWithPassword({
+          email: email,
+          password: senha,
+        });
+
+        if (error) throw error;
+        let dest = 'dashboard.html';
+        try {
+          const { data: prof } = await window.supabase
+            .from('profiles')
+            .select('category')
+            .maybeSingle();
+          if (prof?.category === 'fornecedor') dest = 'fornecimento.html';
+        } catch (_) {}
+        window.location.href = dest;
+
+      } catch (err) {
+        registerAttempt();
+        let msg;
+        if (err.message === 'Invalid login credentials') {
+          msg = 'E-mail ou senha incorretos. Tente novamente.';
+        } else if (err.message && err.message.toLowerCase().includes('email not confirmed')) {
+          msg = '📧 Confirme seu e-mail antes de fazer login. Verifique sua caixa de entrada.';
+        } else {
+          msg = err.message || 'Erro ao tentar autenticar. Tente novamente.';
+        }
+        showAlert('alertLogin', msg);
+        markError('loginEmail');
+        markError('loginSenha');
+      } finally {
+        setLoading('btnLogin', false, 'Entrar na plataforma');
+      }
+    }
+
+    // ==================== HANDLE CADASTRO ====================
+    async function handleCadastro(e) {
+      e.preventDefault();
+
+      if (isBot('hp_cadastro')) {
+        const hp = document.getElementById('hp_cadastro');
+        if (hp) hp.value = '';
+      }
+
+      const nome = sanitize(document.getElementById('cadNome').value);
+      const email = sanitize(document.getElementById('cadEmail').value);
+      const senha = document.getElementById('cadSenha').value;
+      const confirma = document.getElementById('cadConfirma').value;
+      const termos = document.getElementById('termos').checked;
+      const categoryRadio = document.querySelector('input[name="account_category"]:checked');
+      const category = categoryRadio ? categoryRadio.value : 'gerir_assistencia';
+
+      // Validações
+      if (nome.length < 3) {
+        markError('cadNome');
+        showAlert('alertCadastro', 'Informe seu nome completo (mínimo 3 caracteres).');
+        return;
+      }
+      if (!isValidEmail(email)) {
+        markError('cadEmail');
+        showAlert('alertCadastro', 'Informe um e-mail válido.');
+        return;
+      }
+      if (senha.length < 8) {
+        markError('cadSenha');
+        showAlert('alertCadastro', 'A senha deve ter pelo menos 8 caracteres.');
+        return;
+      }
+      if (!/[A-Z]/.test(senha) || !/[0-9]/.test(senha)) {
+        markError('cadSenha');
+        showAlert('alertCadastro', 'A senha precisa conter ao menos 1 letra maiúscula e 1 número.');
+        return;
+      }
+      if (senha !== confirma) {
+        markError('cadConfirma');
+        showAlert('alertCadastro', 'As senhas não coincidem.');
+        return;
+      }
+      if (!termos) {
+        showAlert('alertCadastro', 'Você precisa aceitar os termos de uso.');
+        return;
+      }
+
+      setLoading('btnCadastro', true, 'Criar minha conta');
+      hideAlert('successCadastro');
+
+      try {
+        const { data, error } = await window.supabase.auth.signUp({
+          email: email,
+          password: senha,
+          options: {
+            emailRedirectTo: window.location.origin + '/prototipo/index.html',
+            data: { full_name: nome, category: category },
+          },
+        });
+
+        if (error) throw error;
+
+        hideAlert('alertCadastro');
+        showAlert(
+          'successCadastro',
+          'Conta criada! Verifique seu e-mail para confirmar o cadastro.',
+          'success'
+        );
+
+      } catch (err) {
+        showAlert('alertCadastro', err.message || 'Erro ao criar conta. Tente novamente.');
+      } finally {
+        setLoading('btnCadastro', false, 'Criar minha conta');
+      }
+    }
+
+    // ==================== HANDLE RECOVERY ====================
+    async function handleRecovery(e) {
+      e.preventDefault();
+      const email = sanitize(document.getElementById('recovEmail').value);
+
+      if (!isValidEmail(email)) {
+        document.getElementById('recovEmail').classList.add('error');
+        showAlert('alertRecovery', 'Informe um e-mail válido.');
+        return;
+      }
+
+      setLoading('btnRecovery', true, 'Enviar link de redefinição');
+
+      try {
+        const { error } = await window.supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: window.location.origin + '/prototipo/index.html',
+        });
+        if (error) throw error;
+        showAlert('alertRecovery', '✅ Link enviado! Verifique sua caixa de entrada.', 'success');
+
+      } catch (err) {
+        showAlert('alertRecovery', err.message || 'Erro ao enviar e-mail. Tente novamente.');
+      } finally {
+        setLoading('btnRecovery', false, 'Enviar link de redefinição');
+      }
+    }
+
+    // ==================== UTIL ====================
+    function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+    // Bloqueia DevTools paste em campos de senha (anti-shoulder surfing básico)
+    document.querySelectorAll('input[type="password"]').forEach(el => {
+      el.addEventListener('paste', e => {
+        // Permitido — só alerta se quiser restringir
+        // e.preventDefault();
+      });
+    });
+
+    // Verifica se ja esta logado e redireciona
+    (async function checkExistingSession() {
+      try {
+        const { data } = await window.supabase.auth.getSession();
+        if (!data?.session) return;
+        let dest = 'dashboard.html';
+        try {
+          const { data: prof } = await window.supabase
+            .from('profiles')
+            .select('category')
+            .maybeSingle();
+          if (prof?.category === 'fornecedor') dest = 'fornecimento.html';
+        } catch (_) {}
+        window.location.href = dest;
+      } catch (e) {}
+    })();
+
+    // Limpa honeypots para evitar autofill indevido
+    document.addEventListener('DOMContentLoaded', () => {
+      const hpLogin = document.getElementById('hp_login');
+      const hpCad = document.getElementById('hp_cadastro');
+      if (hpLogin) hpLogin.value = '';
+      if (hpCad) hpCad.value = '';
+      const tab = new URLSearchParams(window.location.search).get('tab');
+      if (tab === 'cadastro') showTab('cadastro');
+    });
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <script>(function(){var t=localStorage.getItem('scartech_theme');document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');if(t==='dark')document.documentElement.style.colorScheme='dark';})()</script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fornecedores — ScarTech</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Sora:wght@400;600;700&display=swap"
+      rel="stylesheet" />
+    <link rel="stylesheet" href="style.css?v=20260331c" />
+  </head>
+  <body>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-logo">
+        <img src="/logo.png" alt="ScarTech" style="width:36px;height:36px;border-radius:8px;" />
+        <span class="logo-text">ScarTech</span>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section">
+          <span class="nav-label">PRINCIPAL</span>
+          <a class="nav-item" data-page="dashboard" href="dashboard.html">
+            <span class="nav-icon">🏠</span>
+            <span class="nav-text">Dashboard</span>
+          </a>
+          <a class="nav-item" data-page="faturamento" href="faturamento.html">
+            <span class="nav-icon">💰</span>
+            <span class="nav-text">Faturamento</span>
+          </a>
+        </div>
+        <div class="nav-section">
+          <span class="nav-label">GESTÃO</span>
+          <a class="nav-item" data-page="ordens" href="ordens.html">
+            <span class="nav-icon">📋</span>
+            <span class="nav-text">Ordens de Serviço</span>
+          </a>
+          <a class="nav-item" data-page="produtos" href="produtos.html">
+            <span class="nav-icon">📦</span>
+            <span class="nav-text">Produtos</span>
+          </a>
+          <a class="nav-item active" data-page="fornecedores" href="fornecedores.html">
+            <span class="nav-icon">🤝</span>
+            <span class="nav-text">Fornecedores</span>
+          </a>
+          <a class="nav-item" data-page="vendas" href="vendas.html">
+            <span class="nav-icon">🛒</span>
+            <span class="nav-text">Vendas</span>
+          </a>
+        </div>
+        <!-- Item exclusivo para fornecedores — exibido via JS -->
+        <div class="nav-section" id="nav-fornecimento-section" style="display:none;">
+          <span class="nav-label">FORNECEDOR</span>
+          <a class="nav-item" data-page="fornecimento" href="fornecimento.html">
+            <span class="nav-icon">🏭</span>
+            <span class="nav-text">Meu Fornecimento</span>
+          </a>
+        </div>
+      </nav>
+
+      <div class="sidebar-footer">
+        <a class="user-card user-card-link" href="perfil.html">
+          <div class="user-avatar" id="sidebarAvatar">ST</div>
+          <div class="user-info">
+            <span class="user-name" id="sidebarNome">Modo Teste</span>
+            <span class="user-role">Meu perfil →</span>
+          </div>
+        </a>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-wrapper" id="mainWrapper">
+      <header class="topbar">
+        <button class="menu-toggle" id="menuToggle" onclick="toggleSidebar()">
+          <span></span><span></span><span></span>
+        </button>
+        <div class="topbar-right">
+          <button class="theme-btn" onclick="toggleTheme()" title="Alternar tema">
+            <span id="themeIcon">☾</span>
+          </button>
+          <button class="logout-btn" onclick="logout()">Sair</button>
+        </div>
+      </header>
+
+      <main class="page-content">
+        <div class="page" id="page-fornecedores">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Fornecedores</h1>
+              <p class="page-sub">Compare fornecedores e encontre as melhores condições de compra para sua assistência técnica.</p>
+            </div>
+          </div>
+
+          <div class="dashboard-cards" id="supplierCardsContainer">
+            <!-- Os cards dos fornecedores serão preenchidos via JS -->
+            <div style="padding:40px; color:var(--text-muted); text-align:center; width:100%;">
+              Carregando fornecedores...
+            </div>
+          </div>
+
+          <section class="table-card">
+            <div class="table-card-header">
+              <h3>Comparativo de preços</h3>
+            </div>
+            <div style="padding: 0 20px 10px;">
+              <p class="page-sub">Busque o produto desejado e ordene por preço, frete ou tempo estimado de entrega.</p>
+            </div>
+            <div class="filter-bar" style="padding: 0 20px 10px; gap: 12px;">
+              <input id="searchProduto" class="search-input" type="search" placeholder="Pesquisar fornecedor ou produto..." oninput="renderFornecedoresComparativo()" />
+              <select id="sortOption" class="filter-select" onchange="renderFornecedoresComparativo()">
+                <option value="cheapest">Ordenar por mais barato</option>
+                <option value="freight">Ordenar por menor frete</option>
+                <option value="time">Ordenar por menor tempo</option>
+                <option value="supplier">Ordenar por fornecedor</option>
+              </select>
+            </div>
+            <div style="overflow-x:auto; padding: 0 20px 20px;">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Fornecedor</th>
+                    <th>Produto</th>
+                    <th>Preço</th>
+                    <th>Tempo de entrega</th>
+                    <th>Frete</th>
+                  </tr>
+                </thead>
+                <tbody id="fornecedoresTableBody">
+                  <tr>
+                    <td colspan="5" style="padding:20px;color:var(--text-secondary);">Carregando dados do Supabase...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <!-- Auth Guard & Supabase -->
+    <script src="supabasecliente.js"></script>
+    <script src="auth-guard.js"></script>
+    <script src="app.js?v=20260331c"></script>
+    <script>
+      const fornecedoresData = [];
+
+      function formatBRL(value) {
+        const number = Number(value ?? 0);
+        return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(number);
+      }
+
+      function parseTempoHoras(valor) {
+        if (!valor) return Number.MAX_SAFE_INTEGER;
+        const match = String(valor).match(/\d+/);
+        if (!match) return Number.MAX_SAFE_INTEGER;
+        const numero = Number(match[0]);
+        return /d/i.test(valor) ? numero * 24 : numero;
+      }
+
+      function updateFornecedoresTable(items) {
+        const tbody = document.getElementById('fornecedoresTableBody');
+        if (!tbody) return;
+
+        if (!items.length) {
+          tbody.innerHTML = '<tr><td colspan="5" style="padding:20px;color:var(--text-secondary);">Nenhum fornecedor encontrado.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = items.map(item => `
+          <tr>
+            <td>${item.nome_fornecedor || ''}</td>
+            <td>${item.nome_produto || ''}</td>
+            <td>${formatBRL(item.preco)}</td>
+            <td>${item.tempo_entrega || ''}</td>
+            <td>${formatBRL(item.preco_frete)}</td>
+          </tr>
+        `).join('');
+      }
+
+      async function renderSupplierCards(itens) {
+        const container = document.getElementById('supplierCardsContainer');
+        if (!container) return;
+
+        // Agrupar por fornecedor
+        const suppliers = {};
+        itens.forEach(item => {
+          const name = item.nome_fornecedor ? String(item.nome_fornecedor).trim() : 'Fornecedor sem Nome';
+          if (!suppliers[name]) {
+            suppliers[name] = {
+              name: name,
+              sinopse: item.sinopse || 'Seja bem-vindo à nossa loja! Oferecemos os melhores componentes para sua assistência.',
+              contato: item.contato || 'Sem contato cadastrado',
+              local: (item.cidade || item.estado) 
+                ? `${item.cidade || ''}${item.cidade && item.estado ? ', ' : ''}${item.estado || ''}`
+                : 'Local não informado',
+              minFrete: item.preco_frete || 0,
+              minTime: item.tempo_entrega || 'Consultar'
+            };
+          } else {
+            if (parseFloat(item.preco_frete || 0) < parseFloat(suppliers[name].minFrete || 0)) {
+              suppliers[name].minFrete = item.preco_frete;
+            }
+          }
+        });
+
+        const supplierList = Object.values(suppliers);
+        if (supplierList.length === 0) {
+          container.innerHTML = '<div style="padding:40px; color:var(--text-muted); text-align:center; width:100%;">Nenhum card de fornecedor para mostrar.</div>';
+          return;
+        }
+
+        container.innerHTML = supplierList.map(s => `
+          <section class="table-card">
+            <div class="table-card-header">
+              <h3>${s.name}</h3>
+            </div>
+            <div style="padding: 18px 20px 14px;">
+              <p class="page-sub">${s.sinopse}</p>
+              <div class="filter-bar" style="margin: 16px 0 0; gap: 10px; flex-wrap: wrap;">
+                <span class="badge badge-aberta">Entrega Verificada</span>
+                <span class="badge badge-concluida">Atendimento Ativo</span>
+              </div>
+            </div>
+            <div class="table-card-details">
+              <div class="stat-item"><strong>Contato:</strong> ${s.contato}</div>
+              <div class="stat-item"><strong>Local:</strong> ${s.local}</div>
+              <div class="stat-item"><strong>Frete a partir de:</strong> ${formatBRL(s.minFrete)}</div>
+              <div class="stat-item"><strong>Tempo estimado:</strong> ${s.minTime}</div>
+              <div class="stat-item"><strong>Avaliação:</strong> ⭐⭐⭐⭐⭐</div>
+            </div>
+          </section>
+        `).join('');
+      }
+
+      function renderFornecedoresComparativo() {
+        const query = document.getElementById('searchProduto').value.toLowerCase();
+        const sort = document.getElementById('sortOption').value;
+
+        let filtered = fornecedoresData.filter(item => 
+          item.nome_fornecedor.toLowerCase().includes(query) ||
+          item.nome_produto.toLowerCase().includes(query)
+        );
+
+        if (sort === 'cheapest') filtered.sort((a, b) => a.preco - b.preco);
+        if (sort === 'freight') filtered.sort((a, b) => a.preco_frete - b.preco_frete);
+        if (sort === 'supplier') filtered.sort((a, b) => a.nome_fornecedor.localeCompare(b.nome_fornecedor));
+        if (sort === 'time') filtered.sort((a, b) => parseTempoHoras(a.tempo_entrega) - parseTempoHoras(b.tempo_entrega));
+
+        renderSupplierCards(filtered);
+
+        const tbody = document.getElementById('fornecedoresTableBody');
+        if (!tbody) return;
+
+        if (filtered.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px;">Nenhum produto encontrado.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = filtered.map(item => `
+          <tr>
+            <td style="font-weight:600;">${item.nome_fornecedor}</td>
+            <td>${item.nome_produto}</td>
+            <td style="color:var(--text-primary);">${formatBRL(item.preco)}</td>
+            <td>${item.tempo_entrega}</td>
+            <td style="color:var(--text-muted);">${formatBRL(item.preco_frete)}</td>
+          </tr>
+        `).join('');
+      }
+
+      async function loadFornecedoresFromSupabase() {
+        const tbody = document.getElementById('fornecedoresTableBody');
+        if (!window.supabase || typeof window.supabase.from !== 'function') return;
+
+        const { data, error } = await window.supabase
+          .from('fornecedores_produtos')
+          .select('id, nome_fornecedor, nome_produto, preco, tempo_entrega, preco_frete, sinopse, contato, cidade, estado')
+          .order('id', { ascending: true });
+
+        if (error) {
+          console.error('Erro Supabase fornecedores:', error);
+          if (tbody) tbody.innerHTML = '<tr><td colspan="5" style="padding:20px;color:var(--red);">Erro ao carregar dados do banco.</td></tr>';
+          return;
+        }
+
+        fornecedoresData.splice(0, fornecedoresData.length, ...(data || []));
+        renderFornecedoresComparativo();
+      }
+
+      document.addEventListener('DOMContentLoaded', loadFornecedoresFromSupabase);
+    </script>
+  </body>
+</html>

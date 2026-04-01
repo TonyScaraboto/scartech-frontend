@@ -1,0 +1,19 @@
+---
+// Redireciona fluxos antigos (Clerk) para o callback do Supabase OAuth / magic link
+---
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="refresh" content="0;url=/auth/callback" />
+    <title>Redirecionando…</title>
+  </head>
+  <body>
+    <p><a href="/auth/callback">Continuar</a></p>
+    <script is:inline>
+      var q = window.location.search || "";
+      var h = window.location.hash || "";
+      window.location.replace("/auth/callback" + q + h);
+    </script>
+  </body>
+</html>
