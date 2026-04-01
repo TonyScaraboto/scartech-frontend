@@ -836,9 +836,9 @@ function renderOrdens(lista = null) {
   tbody.innerHTML = dados.map((o, idx) => `
     <tr>
       <td><strong>#${o.numOS ?? o.numero ?? (idx + 1)}</strong></td>
-      <td>${o.cliente}</td>
-      <td>${o.equipamento}</td>
-      <td><span class="badge ${badgeClass(o.status)}">${o.status}</span></td>
+      <td>${escapeHtml(o.cliente)}</td>
+      <td>${escapeHtml(o.equipamento)}</td>
+      <td><span class="badge ${badgeClass(o.status)}">${escapeHtml(o.status)}</span></td>
       <td>${o.data}</td>
       <td>
         <button class="action-btn" onclick="verDetalhesOrdem(${o.id})">Detalhes</button>
@@ -1156,8 +1156,8 @@ function renderProdutos(lista = null) {
   tbody.innerHTML = dados.map((p, idx) => `
     <tr>
       <td><strong>#${p.numero ?? (idx + 1)}</strong></td>
-      <td>${p.nome}</td>
-      <td><span class="badge badge-aberta">${p.categoria}</span></td>
+      <td>${escapeHtml(p.nome)}</td>
+      <td><span class="badge badge-aberta">${escapeHtml(p.categoria)}</span></td>
       <td>${p.estoque} un.</td>
       <td>R$ ${p.preco.toFixed(2)}</td>
       <td>
@@ -1339,10 +1339,10 @@ function popularProdutosVenda() {
   const filterOpts = ['<option value="">Produto</option>'];
 
   produtos.forEach(p => {
-    const label = `${p.nome} (Estoque: ${p.estoque})`;
+    const label = `${escapeHtml(p.nome)} (Estoque: ${p.estoque})`;
     const disabled = p.estoque <= 0 ? ' disabled' : '';
     opts.push(`<option value="${p.id}"${disabled}>${label}</option>`);
-    filterOpts.push(`<option value="${p.id}">${p.nome}</option>`);
+    filterOpts.push(`<option value="${p.id}">${escapeHtml(p.nome)}</option>`);
   });
 
   if (sel) sel.innerHTML = opts.join('');
@@ -1385,8 +1385,8 @@ function renderVendas(lista = null) {
   tbody.innerHTML = dados.map((v, idx) => `
     <tr>
       <td><strong>#${v.numero ?? (idx + 1)}</strong></td>
-      <td>${v.cliente}</td>
-      <td>${v.produto}</td>
+      <td>${escapeHtml(v.cliente)}</td>
+      <td>${escapeHtml(v.produto)}</td>
       <td>${v.qtd}</td>
       <td>R$ ${v.valor.toFixed(2)}</td>
       <td>R$ ${Number(v.lucro ?? 0).toFixed(2)}</td>
@@ -1496,7 +1496,7 @@ function renderRelatoriosVendasSidebar(dados) {
       <div class="widget-item">
         <div class="w-avatar">🛍️</div>
         <div class="w-info">
-          <strong>${p.nome}</strong>
+          <strong>${escapeHtml(p.nome)}</strong>
           <span>Vendas no período</span>
         </div>
         <div class="w-value">${p.qty} <span style="font-size:0.75rem;color:var(--text-muted);font-weight:400"> un</span></div>
@@ -1525,10 +1525,10 @@ function renderRelatoriosVendasSidebar(dados) {
       <div class="widget-item">
         <div class="w-avatar round">${initial}</div>
         <div class="w-info">
-          <strong>${v.cliente}</strong>
+          <strong>${escapeHtml(v.cliente)}</strong>
           <span>${v.data}</span>
         </div>
-        <button class="w-btn" onclick="document.getElementById('filterVendaCliente').value='${v.cliente}'; runVendasFilters();">Ver ▸</button>
+        <button class="w-btn" data-cliente="${escapeHtml(v.cliente)}" onclick="document.getElementById('filterVendaCliente').value=this.dataset.cliente; runVendasFilters();">Ver ▸</button>
       </div>`;
     }).join('');
   }
@@ -1568,8 +1568,8 @@ function renderListaOrdensDashboard() {
     const equipamento = o.equipamento || 'Equipamento';
     return `
       <div class="stat-item">
-        <span class="badge ${badgeClass(status)}">${status}</span>
-        <span class="stat-text">${cliente} — ${equipamento}</span>
+        <span class="badge ${badgeClass(status)}">${escapeHtml(status)}</span>
+        <span class="stat-text">${escapeHtml(cliente)} — ${escapeHtml(equipamento)}</span>
       </div>`;
   }).join('');
 
