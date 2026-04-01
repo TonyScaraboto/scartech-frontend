@@ -1030,12 +1030,19 @@ function exportarOrdensCSV() {
 
 // ==================== PRODUTOS ====================
 async function salvarProduto() {
+  const parseCurrencyBr = (val) => {
+    if(!val) return 0;
+    if(typeof val === 'number') return val;
+    return parseFloat(val.replace(/\./g, '').replace(',', '.')) || 0;
+  };
+
   const nome      = document.getElementById('prodNome').value.trim();
   const categoria = document.getElementById('prodCategoria').value;
   const estoque   = parseInt(document.getElementById('prodEstoque').value) || 0;
-  const preco     = parseFloat(document.getElementById('prodPreco').value) || 0;
+  
+  const preco      = parseCurrencyBr(document.getElementById('prodPreco').value);
   const custoInput = document.getElementById('prodCusto').value;
-  const custo     = parseFloat(custoInput);
+  const custo      = parseCurrencyBr(custoInput);
 
   if (!nome) {
     showToast('Informe o nome do produto!', 'error');
@@ -1132,6 +1139,9 @@ function renderProdutos(lista = null) {
           </div>
         </td>
       </tr>`;
+    if (typeof renderProductsChartOtimista === 'function') {
+      renderProductsChartOtimista(dados);
+    }
     return;
   }
 
@@ -1147,6 +1157,10 @@ function renderProdutos(lista = null) {
         <button class="action-btn danger" onclick="excluirProduto(${p.id})">Excluir</button>
       </td>
     </tr>`).join('');
+
+  if (typeof renderProductsChartOtimista === 'function') {
+    renderProductsChartOtimista(dados);
+  }
 }
 
 async function excluirProduto(id) {
@@ -1179,8 +1193,9 @@ function editarProduto(id) {
   document.getElementById('prodNome').value      = p.nome;
   document.getElementById('prodCategoria').value = p.categoria;
   document.getElementById('prodEstoque').value   = p.estoque;
-  document.getElementById('prodPreco').value     = p.preco;
-  document.getElementById('prodCusto').value     = p.custo ?? 0;
+  const formatEdit = (num) => Number(num || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  document.getElementById('prodPreco').value     = formatEdit(p.preco);
+  document.getElementById('prodCusto').value     = formatEdit(p.custo);
   produtoEmEdicao = id;
   openModal('modal-novo-produto');
 }
@@ -1310,15 +1325,20 @@ function limparFormVenda() {
 
 function popularProdutosVenda() {
   const sel = document.getElementById('vendaProduto');
-  if (!sel) return;
-  const opts = [];
-  opts.push('<option value="">Selecione um produto</option>');
+  const filterSel = document.getElementById('filterVendaProduto');
+
+  const opts = ['<option value="">Selecione um produto</option>'];
+  const filterOpts = ['<option value="">Produto</option>'];
+
   produtos.forEach(p => {
     const label = `${p.nome} (Estoque: ${p.estoque})`;
     const disabled = p.estoque <= 0 ? ' disabled' : '';
     opts.push(`<option value="${p.id}"${disabled}>${label}</option>`);
+    filterOpts.push(`<option value="${p.id}">${p.nome}</option>`);
   });
-  sel.innerHTML = opts.join('');
+
+  if (sel) sel.innerHTML = opts.join('');
+  if (filterSel) filterSel.innerHTML = filterOpts.join('');
 }
 
 function atualizarPrecoVenda() {
@@ -1330,30 +1350,31 @@ function atualizarPrecoVenda() {
   const produtoSel = produtos.find(p => p.id === produtoId);
   if (!produtoSel) return;
   const qtd = parseInt(qtdEl.value) || 1;
-  if (!valEl.value || Number(valEl.value) <= 0) {
-    valEl.value = (produtoSel.preco * qtd).toFixed(2);
-  }
+  valEl.value = (produtoSel.preco * qtd).toFixed(2);
 }
 
-function renderVendas() {
+function renderVendas(lista = null) {
   const tbody = document.getElementById('tbodyVendas');
   if (!tbody) return;
-  if (vendas.length === 0) {
+  const dados = lista || vendas;
+
+  if (dados.length === 0) {
     tbody.innerHTML = `
       <tr class="empty-row">
         <td colspan="8">
           <div class="empty-state">
             <span class="empty-icon">🛒</span>
-            <p>Nenhuma venda registrada</p>
+            <p>Nenhuma venda encontrada</p>
             <button class="btn-primary btn-sm" onclick="openModal('modal-nova-venda')">Registrar venda</button>
           </div>
         </td>
       </tr>`;
-    atualizarStatsVendas();
+    atualizarStatsVendas(dados);
+    renderRelatoriosVendasSidebar(dados);
     return;
   }
 
-  tbody.innerHTML = vendas.map((v, idx) => `
+  tbody.innerHTML = dados.map((v, idx) => `
     <tr>
       <td><strong>#${v.numero ?? (idx + 1)}</strong></td>
       <td>${v.cliente}</td>
@@ -1367,7 +1388,8 @@ function renderVendas() {
       </td>
     </tr>`).join('');
 
-  atualizarStatsVendas();
+  atualizarStatsVendas(dados);
+  renderRelatoriosVendasSidebar(dados);
 }
 
 function excluirVenda(id) {
@@ -1393,17 +1415,115 @@ function excluirVenda(id) {
   showToast('Venda excluída.', 'error');
 }
 
-function atualizarStatsVendas() {
-  const total = vendas.reduce((s, v) => s + v.valor, 0);
-  const ticket = vendas.length > 0 ? total / vendas.length : 0;
+function atualizarStatsVendas(lista = vendas) {
+  const total = lista.reduce((s, v) => s + v.valor, 0);
+  const ticket = lista.length > 0 ? total / lista.length : 0;
   const hoje = new Date().toLocaleDateString('pt-BR');
-  const hojeCount = vendas.filter(v => v.data === hoje).length;
+  const hojeCount = lista.filter(v => v.data === hoje).length;
 
   const el = (id, val) => { const e = document.getElementById(id); if(e) e.textContent = val; };
   el('totalVendas', `R$ ${total.toFixed(2)}`);
-  el('qtdVendas', vendas.length);
+  el('qtdVendas', lista.length);
   el('ticketMedioVendas', `R$ ${ticket.toFixed(2)}`);
   el('vendasHoje', hojeCount);
+}
+
+// === FILTROS AVANÇADOS ===
+window.vendasCurrentPeriod = '30dias'; // padrão inicial compatível com HTML
+function setVendasPeriod(period) {
+  const btns = document.querySelectorAll('#filterDateGroup .vendas-filter-btn');
+  if(!btns.length) return;
+  btns.forEach(b => {
+    if (b.dataset.period === period) b.classList.add('active');
+    else b.classList.remove('active');
+  });
+  window.vendasCurrentPeriod = period;
+  runVendasFilters();
+}
+
+function runVendasFilters() {
+  const prod = document.getElementById('filterVendaProduto')?.value;
+  const buscaCliente = document.getElementById('filterVendaCliente')?.value.toLowerCase();
+  const period = window.vendasCurrentPeriod;
+  
+  const now = new Date();
+  let cutoffTime = 0;
+  
+  if (period === 'hoje') {
+    cutoffTime = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  } else if (period === '7dias') {
+    cutoffTime = now.getTime() - 7 * 24 * 60 * 60 * 1000;
+  } else if (period === '30dias') {
+    cutoffTime = now.getTime() - 30 * 24 * 60 * 60 * 1000;
+  }
+  
+  const filtradas = vendas.filter(v => {
+    if (period !== 'all' && v.timestamp < cutoffTime) return false;
+    if (prod && String(v.produto_id) !== String(prod)) return false;
+    if (buscaCliente && !(v.cliente || '').toLowerCase().includes(buscaCliente)) return false;
+    return true;
+  });
+  renderVendas(filtradas);
+}
+
+function renderRelatoriosVendasSidebar(dados) {
+  const topContainer = document.getElementById('topProductsList');
+  const lastContainer = document.getElementById('latestCustomersList');
+  if (!topContainer || !lastContainer) return;
+
+  const pMap = {};
+  dados.forEach(v => {
+    if (!pMap[v.produto]) pMap[v.produto] = 0;
+    pMap[v.produto] += v.qtd;
+  });
+  const sortedProducts = Object.entries(pMap)
+    .map(([nome, qty]) => ({ nome, qty }))
+    .sort((a,b) => b.qty - a.qty)
+    .slice(0, 5);
+  
+  if (sortedProducts.length === 0) {
+    topContainer.innerHTML = '<div class="stat-empty">Nenhuma venda encontrada</div>';
+  } else {
+    topContainer.innerHTML = sortedProducts.map(p => `
+      <div class="widget-item">
+        <div class="w-avatar">🛍️</div>
+        <div class="w-info">
+          <strong>${p.nome}</strong>
+          <span>Vendas no período</span>
+        </div>
+        <div class="w-value">${p.qty} <span style="font-size:0.75rem;color:var(--text-muted);font-weight:400"> un</span></div>
+      </div>
+    `).join('');
+  }
+
+  const recentes = [...dados].sort((a, b) => b.timestamp - a.timestamp);
+  const clientesVistos = new Set();
+  const ultimosClientes = [];
+  for(let v of recentes) {
+    const nomeNormalizado = (v.cliente || '').trim().toLowerCase();
+    if (nomeNormalizado && !clientesVistos.has(nomeNormalizado)) {
+      clientesVistos.add(nomeNormalizado);
+      ultimosClientes.push(v);
+    }
+    if (ultimosClientes.length >= 3) break;
+  }
+
+  if (ultimosClientes.length === 0) {
+    lastContainer.innerHTML = '<div class="stat-empty">Nenhum cliente recente</div>';
+  } else {
+    lastContainer.innerHTML = ultimosClientes.map(v => {
+      const initial = (v.cliente || 'C').charAt(0).toUpperCase();
+      return `
+      <div class="widget-item">
+        <div class="w-avatar round">${initial}</div>
+        <div class="w-info">
+          <strong>${v.cliente}</strong>
+          <span>${v.data}</span>
+        </div>
+        <button class="w-btn" onclick="document.getElementById('filterVendaCliente').value='${v.cliente}'; runVendasFilters();">Ver ▸</button>
+      </div>`;
+    }).join('');
+  }
 }
 function isStatusConcluida(status) {
   const s = (status || '').toLowerCase();
@@ -1750,5 +1870,92 @@ function ajustarLabelsPrecoProduto() {
   setLabel('prodPreco', 'Preço de Venda (R$ / unidade)');
   setLabel('prodCusto', 'Preço de Compra (R$ / unidade)');
 }
+
+function renderProductsChartOtimista(dados) {
+  const ctx = document.getElementById('chartOtimista');
+  if (!ctx) return;
+  
+  let totalCusto = 0;
+  let totalLucroEstimado = 0;
+
+  dados.forEach(p => {
+    const qty = Number(p.estoque || 0);
+    const custo = Number(p.custo || 0);
+    const preco = Number(p.preco || 0);
+    totalCusto += custo * qty;
+    totalLucroEstimado += (preco - custo) * qty;
+  });
+
+  const c = getChartColors ? getChartColors() : { amber: '#F59E0B', green: '#10B981', text: '#637083', grid: 'rgba(0,0,0,0.05)' };
+  
+  if (ctx._chart) {
+    ctx._chart.destroy();
+  }
+
+  ctx._chart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Projeção de Estoque'],
+      datasets: [
+        {
+          label: 'Total Gasto (Custo)',
+          data: [totalCusto],
+          backgroundColor: c.amber,
+          borderRadius: 6,
+        },
+        {
+          label: 'Lucro Estimado ao Vender Tudo',
+          data: [totalLucroEstimado],
+          backgroundColor: c.green,
+          borderRadius: 6,
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: true,
+          position: 'top',
+          labels: { color: c.text, font: { family: 'Plus Jakarta Sans' } }
+        },
+        tooltip: {
+          backgroundColor: 'rgba(15,24,35,0.9)',
+          titleColor: '#fff',
+          bodyColor: '#aaa',
+          padding: 10,
+          callbacks: {
+            label: context => `R$ ${context.parsed.y.toLocaleString('pt-BR', {minimumFractionDigits:2})}`
+          }
+        }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: c.text } },
+        y: {
+          grid: { color: c.grid },
+          ticks: {
+            color: c.text,
+            callback: value => 'R$ ' + value.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2})
+          }
+        }
+      }
+    }
+  });
+}
+
+document.addEventListener('input', e => {
+  if (e.target && e.target.classList.contains('mask-currency')) {
+    let value = e.target.value.replace(/\D/g, '');
+    if (value === '') {
+      e.target.value = '';
+      return;
+    }
+    value = (parseInt(value, 10) / 100).toFixed(2);
+    value = value.replace('.', ',');
+    value = value.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    e.target.value = value;
+  }
+});
 
 

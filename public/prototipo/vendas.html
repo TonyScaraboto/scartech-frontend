@@ -14,6 +14,162 @@
     rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="style.css?v=20260329d" />
+  <style>
+    /* ==================== VENDAS LAYOUT ==================== */
+    .vendas-filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 20px;
+      padding: 12px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      align-items: center;
+    }
+    .vendas-filter-group {
+      display: flex;
+      align-items: center;
+      background: var(--bg);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+    .search-group { background: transparent; border: none; overflow: visible; gap: 8px; }
+    
+    .vendas-filter-btn {
+      padding: 8px 16px;
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+      font-family: inherit;
+      cursor: pointer;
+      font-weight: 500;
+      border-right: 1px solid var(--border);
+      transition: all var(--transition);
+    }
+    .vendas-filter-btn:last-child { border-right: none; }
+    .vendas-filter-btn.active, .vendas-filter-btn:hover {
+      background: var(--primary-light);
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .vendas-filter-input {
+      padding: 8px 14px;
+      font-family: inherit;
+      font-size: 0.85rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--bg-card);
+      color: var(--text-primary);
+      outline: none;
+      transition: all var(--transition);
+    }
+    .vendas-filter-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-glow); }
+    
+    .vendas-search-btn {
+      padding: 8px 16px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      border-radius: var(--radius-sm);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .vendas-search-btn:hover { background: var(--bg); color: var(--primary); border-color: var(--primary); }
+
+    .vendas-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 300px;
+      gap: 24px;
+      align-items: start;
+    }
+    @media (max-width: 1024px) {
+      .vendas-layout { grid-template-columns: 1fr; }
+    }
+
+    .vendas-main {
+      display: flex;
+      flex-direction: column;
+    }
+    .vendas-sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .side-widget { padding: 20px; border-radius: var(--radius); }
+    .widget-title {
+      font-family: 'Sora', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 16px;
+    }
+    .widget-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .widget-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px;
+      background: var(--bg);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+    }
+    .w-avatar {
+      width: 32px;
+      height: 32px;
+      background: white;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      box-shadow: var(--shadow-sm);
+      flex-shrink: 0;
+    }
+    .w-avatar.round { border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; font-weight: bold; font-size: 0.8rem; }
+    .w-info {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-width: 0;
+    }
+    .w-info strong {
+      font-size: 0.85rem;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 2px;
+    }
+    .w-info span { font-size: 0.75rem; color: var(--text-muted); }
+    .w-value {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+    .w-btn {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      background: none;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .w-btn:hover { color: var(--primary); }
+    .widget-all { text-align: center; margin-top: 12px; }
+  </style>
 </head>
 
 <body>
@@ -136,34 +292,74 @@
           </div>
         </div>
 
-        <div class="table-card">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>Nº</th>
-                <th>Cliente</th>
-                <th>Produto</th>
-                <th>Qtd</th>
-                <th>Valor</th>
-                <th>Lucro</th>
-                <th>Data</th>
-                <th>Ações</th>
-              </tr>
-            </thead>
-            <tbody id="tbodyVendas">
-              <tr class="empty-row">
-                <td colspan="8">
-                  <div class="empty-state">
-                    <span class="empty-icon">🛒</span>
-                    <p>Nenhuma venda registrada</p>
-                    <button class="btn-primary btn-sm" onclick="openModal('modal-nova-venda')">Registrar venda</button>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+        <!-- ADVANCED FILTERS -->
+        <div class="vendas-filter-bar">
+          <div class="vendas-filter-group" id="filterDateGroup">
+            <button class="vendas-filter-btn" data-period="hoje" onclick="setVendasPeriod('hoje')">Hoje</button>
+            <button class="vendas-filter-btn" data-period="7dias" onclick="setVendasPeriod('7dias')">7 dias</button>
+            <button class="vendas-filter-btn active" data-period="30dias" onclick="setVendasPeriod('30dias')">30 dias</button>
+            <button class="vendas-filter-btn" data-period="all" onclick="setVendasPeriod('all')">Todos</button>
+          </div>
+          <div class="vendas-filter-group search-group">
+            <select class="vendas-filter-input" id="filterVendaProduto" onchange="runVendasFilters()">
+              <option value="">Produto</option>
+            </select>
+            <input type="text" class="vendas-filter-input" id="filterVendaCliente" placeholder="Cliente..." oninput="runVendasFilters()">
+            <button class="vendas-search-btn" onclick="runVendasFilters()">🔍 Buscar</button>
+          </div>
         </div>
-        <button class="btn-back" onclick="navigate('dashboard')">← Voltar ao Dashboard</button>
+
+        <div class="vendas-layout">
+          <div class="vendas-main">
+            <div class="table-card">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Nº</th>
+                    <th>Cliente</th>
+                    <th>Produto</th>
+                    <th>Qtd</th>
+                    <th>Valor</th>
+                    <th>Lucro</th>
+                    <th>Data</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="tbodyVendas">
+                  <tr class="empty-row">
+                    <td colspan="8">
+                      <div class="empty-state">
+                        <span class="empty-icon">🛒</span>
+                        <p>Nenhuma venda registrada</p>
+                        <button class="btn-primary btn-sm" onclick="openModal('modal-nova-venda')">Registrar venda</button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <button class="btn-back" onclick="navigate('dashboard')">← Voltar ao Dashboard</button>
+          </div>
+
+          <div class="vendas-sidebar">
+            <div class="dash-card side-widget">
+              <h3 class="widget-title">Produtos Mais Vendidos</h3>
+              <div class="widget-list" id="topProductsList">
+                <div class="stat-empty">Carregando...</div>
+              </div>
+              <div class="widget-all">
+                <button class="w-btn" onclick="navigate('relatorios')">← Ver Relatórios</button>
+              </div>
+            </div>
+
+            <div class="dash-card side-widget">
+              <h3 class="widget-title">Últimos Clientes</h3>
+              <div class="widget-list" id="latestCustomersList">
+                <div class="stat-empty">Carregando...</div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
     </main>
