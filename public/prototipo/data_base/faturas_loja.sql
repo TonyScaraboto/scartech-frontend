@@ -5,6 +5,8 @@ CREATE TABLE faturas_loja (
     valor NUMERIC(10, 2) NOT NULL,
     data_vencimento DATE NOT NULL,
     renova_mensalmente BOOLEAN DEFAULT false,
+    pago BOOLEAN DEFAULT false,
+    data_pagamento TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
