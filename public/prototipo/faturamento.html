@@ -171,10 +171,22 @@
 
           <div class="table-card" style="margin-top: 24px;">
             <div class="table-card-header">
-              <h3>🍩 Visão Geral (Ordens em Andamento, Lucro em Estoque e Contas Pendentes)</h3>
+              <h3>🍩 Para onde foi meu dinheiro este mês?</h3>
+              <p style="font-size: 0.85rem; color: var(--text-secondary); margin:0;">Fração exata de cada gasto (Estoque + Contas Pagas do Mês)</p>
             </div>
             <div class="chart-wrap chart-wrap-sm">
-              <canvas id="chartPizzaMisto"></canvas>
+              <canvas id="chartPizzaDespesas"></canvas>
+            </div>
+          </div>
+
+          <!-- COMPARATIVO ANUAL DE FLUXO DE CAIXA -->
+          <div class="table-card" style="margin-top: 24px;">
+            <div class="table-card-header" style="display:flex; justify-content:space-between; align-items:center;">
+              <h3>📈 Comparativo Anual do Fluxo de Caixa</h3>
+              <p style="font-size: 0.85rem; color: var(--text-secondary); margin:0;">Receitas x Despesas x Saldo Líquido</p>
+            </div>
+            <div class="chart-wrap">
+              <canvas id="chartComparativoAnual"></canvas>
             </div>
           </div>
         </div>
@@ -379,6 +391,7 @@
     let contas_faturamento = [];
     let chartDespesas = null;
     let chartPizza = null;
+    let chartComparativoAnual = null;
     let filtroDespesas = 'ambos';
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -396,7 +409,8 @@
         }
       }
       renderizarDespesas();
-      renderizarPizzaMisto();
+      renderizarPizzaDespesasMensais();
+      renderizarComparativoAnual();
     }
 
     function setDespesasGrafico(modo) {
@@ -498,48 +512,181 @@
       });
     }
 
-    function renderizarPizzaMisto() {
+    function renderizarPizzaDespesasMensais() {
       const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-      const c = { text: isDark ? '#8A9BB0' : '#637083', purple: '#6366F1', green: '#10B981', red: '#EF4444' };
+      const cText = isDark ? '#8A9BB0' : '#637083';
       
-      const ctx = document.getElementById('chartPizzaMisto');
+      const ctx = document.getElementById('chartPizzaDespesas');
       if(!ctx) return;
 
-      let ordensValor = 0;
-      if(window.ordens) {
-        window.ordens.forEach(o => {
-          const st = (o.status || '').toLowerCase();
-          if(st.includes('aberta') || st.includes('andamento')) {
-            ordensValor += Number(o.valor || 0);
+      const hoje = new Date();
+      const mAtual = hoje.getMonth();
+      const aAtual = hoje.getFullYear();
+
+      let labels = [];
+      let dataVals = [];
+      let colors = [];
+
+      let gastoEstoque = 0;
+      if(window.produtos) {
+        window.produtos.forEach(p => {
+          if(p.data_compra) {
+            const d = new Date(p.data_compra + 'T12:00:00');
+            if(d.getMonth() === mAtual && d.getFullYear() === aAtual) {
+              gastoEstoque += (p.custo || 0) * (p.estoque > 0 ? p.estoque : 1);
+            }
           }
         });
       }
-
-      let lucroEstoque = 0;
-      if(window.produtos) {
-        window.produtos.forEach(p => {
-          lucroEstoque += ((p.preco || 0) - (p.custo || 0)) * (p.estoque || 0);
-        });
+      if(gastoEstoque > 0) {
+        labels.push('Reposição de Estoque');
+        dataVals.push(gastoEstoque);
+        colors.push('#10B981');
       }
 
-      let contasPendentes = 0;
+      const paleta = ['#F59E0B', '#3B82F6', '#8B5CF6', '#EC4899', '#14B8A6'];
+      let corIdx = 0;
+
       contas_faturamento.forEach(f => {
-        if(!f.pago) {
-          contasPendentes += Number(f.valor || 0);
+        if(f.pago && f.data_pagamento) {
+          const d = new Date(f.data_pagamento);
+          if(d.getMonth() === mAtual && d.getFullYear() === aAtual) {
+            labels.push(f.descricao || 'Despesa Lançada');
+            dataVals.push(Number(f.valor || 0));
+            colors.push(paleta[corIdx % paleta.length]);
+            corIdx++;
+          }
         }
       });
+
+      if(labels.length === 0) {
+        labels.push('Sem despesas registradas');
+        dataVals.push(1);
+        colors.push(isDark ? '#334155' : '#E2E8F0');
+      }
 
       if(chartPizza) chartPizza.destroy();
 
       chartPizza = new Chart(ctx, {
         type: 'doughnut',
         data: {
-          labels: ['O.S Abertas/Em Andamento', 'Lucro do Estoque', 'Contas Pendentes/Vencidas'],
+          labels: labels,
           datasets: [{
-            data: [ordensValor, Math.max(0, lucroEstoque), contasPendentes],
-            backgroundColor: [c.purple, c.green, c.red],
+            data: dataVals,
+            backgroundColor: colors,
             borderWidth: 0, hoverOffset: 6
           }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom', labels: { color: cText, font: {family:'Plus Jakarta Sans'}, padding: 20 } },
+            tooltip: {
+              backgroundColor: 'rgba(15,24,35,0.9)', titleColor: '#fff', bodyColor: '#aaa', padding: 10,
+              callbacks: { 
+                label: ctx => {
+                  if(ctx.label === 'Sem despesas registradas') return ' R$ 0,00';
+                  return ' R$ ' + ctx.parsed.toLocaleString('pt-BR', {minimumFractionDigits:2}) 
+                }
+              }
+            }
+          },
+          cutout: '55%'
+        }
+      });
+    }
+
+    function renderizarComparativoAnual() {
+      const ctx = document.getElementById('chartComparativoAnual');
+      if(!ctx) return;
+      
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      const c = { text: isDark ? '#8A9BB0' : '#637083', grid: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)', teal: '#0E9FAA', purple: '#6366F1', green: '#10B981', red: '#EF4444' };
+
+      const meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+      const rec = Array(12).fill(0);
+      const desp = Array(12).fill(0);
+      const saldo = Array(12).fill(0);
+
+      const toDate = (dataBase) => {
+        if(!dataBase) return null;
+        let d = new Date(dataBase);
+        if(Number.isNaN(d.getTime()) && typeof dataBase === 'string') {
+          const partes = dataBase.split('/');
+          if(partes.length === 3) d = new Date(partes[2], partes[1] - 1, partes[0]);
+        }
+        return Number.isNaN(d.getTime()) ? null : d;
+      };
+
+      if(window.vendas) {
+        window.vendas.forEach(v => {
+          const d = toDate(v.dataIso || v.data);
+          if(d) rec[d.getMonth()] += Number(v.valor || 0);
+        });
+      }
+
+      if(window.ordens) {
+        window.ordens.forEach(o => {
+          const st = (o.status || '').toLowerCase();
+          if(st.includes('conclu')) {
+            const d = toDate(o.data || o.created_at);
+            if(d) rec[d.getMonth()] += Number(o.valor || 0);
+          }
+        });
+      }
+
+      contas_faturamento.forEach(f => {
+        if(f.pago) {
+          const d = toDate(f.data_pagamento);
+          if(d) desp[d.getMonth()] += Number(f.valor || 0);
+        }
+      });
+
+      if(window.produtos) {
+        window.produtos.forEach(p => {
+          if(p.data_compra) {
+            const d = toDate(p.data_compra + 'T12:00:00');
+            if(d) desp[d.getMonth()] += (p.custo || 0) * (p.estoque > 0 ? p.estoque : 1);
+          }
+        });
+      }
+
+      for(let i = 0; i < 12; i++) {
+        saldo[i] = rec[i] - desp[i];
+      }
+
+      if(chartComparativoAnual) chartComparativoAnual.destroy();
+
+      chartComparativoAnual = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: meses,
+          datasets: [
+            {
+              type: 'line',
+              label: 'Saldo Líquido',
+              data: saldo,
+              borderColor: c.teal,
+              backgroundColor: c.teal,
+              borderWidth: 2,
+              tension: 0.4,
+              fill: false
+            },
+            {
+              type: 'bar',
+              label: 'Receitas',
+              data: rec,
+              backgroundColor: c.green,
+              borderRadius: 4
+            },
+            {
+              type: 'bar',
+              label: 'Despesas',
+              data: desp,
+              backgroundColor: c.red,
+              borderRadius: 4
+            }
+          ]
         },
         options: {
           responsive: true, maintainAspectRatio: false,
@@ -547,10 +694,13 @@
             legend: { position: 'bottom', labels: { color: c.text, font: {family:'Plus Jakarta Sans'}, padding: 20 } },
             tooltip: {
               backgroundColor: 'rgba(15,24,35,0.9)', titleColor: '#fff', bodyColor: '#aaa', padding: 10,
-              callbacks: { label: ctx => ' R$ ' + ctx.parsed.toLocaleString('pt-BR', {minimumFractionDigits:2}) }
+              callbacks: { label: ctx => ctx.dataset.label + ': R$ ' + ctx.parsed.y.toLocaleString('pt-BR', {minimumFractionDigits:2}) }
             }
           },
-          cutout: '55%'
+          scales: {
+             x: { grid: { display: false }, stacked: false, ticks: { color: c.text, font: {family:'Plus Jakarta Sans'} } },
+             y: { grid: { color: c.grid }, ticks: { color: c.text, font: {family:'Plus Jakarta Sans'} } }
+          }
         }
       });
     }
