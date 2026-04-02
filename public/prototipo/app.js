@@ -70,6 +70,7 @@ async function initPage() {
     await carregarVendas();
     await carregarOrdens();
     renderChartsIfNeeded();
+    initFaturamentoTabFromQuery();
   }
 }
 
@@ -118,12 +119,26 @@ function navigate(page) {
   const urls = {
     dashboard: 'dashboard.html',
     faturamento: 'faturamento.html',
+    faturaLoja: 'faturamento.html?tab=loja',
     ordens: 'ordens.html',
     produtos: 'produtos.html',
     fornecedores: 'fornecedores.html',
     vendas: 'vendas.html',
   };
   if (urls[page]) window.location.href = urls[page];
+}
+
+/** Abre a aba correta na página de faturamento (?tab=loja). */
+function initFaturamentoTabFromQuery() {
+  const tab = new URLSearchParams(window.location.search).get('tab');
+  if (tab !== 'loja') return;
+  const pane = document.getElementById('tab-loja');
+  if (!pane) return;
+  document.querySelectorAll('#page-faturamento .tab-content').forEach((t) => t.classList.add('hidden'));
+  document.querySelectorAll('#page-faturamento .tab-btn').forEach((b) => b.classList.remove('active'));
+  pane.classList.remove('hidden');
+  const btn = document.querySelector('#page-faturamento .tab-btn[data-tab-target="tab-loja"]');
+  if (btn) btn.classList.add('active');
 }
 
 // ==================== TABS ====================
