@@ -119,7 +119,7 @@ function navigate(page) {
   const urls = {
     dashboard: 'dashboard.html',
     faturamento: 'faturamento.html',
-    faturaLoja: 'faturamento.html?tab=loja',
+    faturaLoja: 'fatura_da_loja.html',
     ordens: 'ordens.html',
     produtos: 'produtos.html',
     fornecedores: 'fornecedores.html',
