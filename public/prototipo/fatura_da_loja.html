@@ -223,7 +223,7 @@
         <div class="form-row">
           <div class="form-group">
             <label>Valor (R$) *</label>
-            <input type="number" class="form-input" id="faturaValor" placeholder="0,00" min="0" step="0.01" />
+            <input type="text" class="form-input" id="faturaValor" placeholder="R$ 0,00" />
           </div>
           <div class="form-group">
             <label>Data de Vencimento *</label>
@@ -252,6 +252,21 @@
     </div>
   </div>
 
+  <!-- Modal Confirmação Customizado -->
+  <div class="modal-overlay hidden" id="modal-confirmacao">
+    <div class="modal" style="max-width: 400px; text-align: center;">
+      <div class="modal-body" style="padding-top: 24px;">
+        <span style="font-size: 3rem; display: block; margin-bottom: 12px;" id="confirmIcon">⚠️</span>
+        <h3 id="confirmTitle" style="margin-bottom: 8px;">Confirmação</h3>
+        <p id="confirmMessage" style="color:var(--text-secondary); font-size: 0.9rem; margin-bottom: 24px;">Deseja continuar?</p>
+        <div style="display: flex; gap: 12px; justify-content: center;">
+          <button class="btn-secondary" onclick="fecharModalConfirm()" style="flex: 1;">Cancelar</button>
+          <button class="btn-primary" id="confirmActionBtn" style="flex: 1;">Confirmar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Toast Notification -->
   <div class="toast" id="toast"></div>
 
@@ -263,11 +278,44 @@
     let faturasDesc = [];
     let diasFiltroPagas = 30;
     
+    // Máscara de moeda em tempo real
+    document.getElementById('faturaValor').addEventListener('input', function (e) {
+      let value = e.target.value.replace(/\D/g, ''); // \D escapes digit regex
+      if (value === '') { e.target.value = ''; return; }
+      value = (parseInt(value) / 100).toFixed(2);
+      e.target.value = 'R$ ' + value.replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.'); // \B escapes regex boundary
+    });
+
     function getNumericValue(id) {
        const el = document.getElementById(id);
        if (!el || !el.value) return 0;
-       return parseFloat(el.value.replace(',', '.'));
+       let str = el.value.replace('R$', '').trim().replace(/\./g, '').replace(',', '.'); // \. escapes dot regex
+       return parseFloat(str) || 0;
     }
+
+    // Modal Confirmation Logic
+    let confirmCallback = null;
+
+    function abrirConfirm(icon, title, message, btnText, btnColor, action) {
+       document.getElementById('confirmIcon').innerText = icon;
+       document.getElementById('confirmTitle').innerText = title;
+       document.getElementById('confirmMessage').innerText = message;
+       const btn = document.getElementById('confirmActionBtn');
+       btn.innerText = btnText;
+       btn.style.background = btnColor;
+       confirmCallback = action;
+       document.getElementById('modal-confirmacao').classList.remove('hidden');
+    }
+
+    function fecharModalConfirm() {
+       document.getElementById('modal-confirmacao').classList.add('hidden');
+       confirmCallback = null;
+    }
+
+    document.getElementById('confirmActionBtn').addEventListener('click', () => {
+       if (confirmCallback) confirmCallback();
+       fecharModalConfirm();
+    });
 
     async function carregarFaturas() {
       if (!window.supabase) return;
@@ -318,26 +366,21 @@
       faturasDesc.forEach(f => {
          const v = new Date(f.data_vencimento + 'T12:00:00');
          
-         // Totals calculation ONLY for current month due bills
          if (v.getMonth() === mAtual && v.getFullYear() === aAtual) {
             tMes += Number(f.valor);
             if (f.pago) tPago += Number(f.valor);
             else tPendente += Number(f.valor);
          }
          
-         // Segregate arrays
          if (f.pago) pagas.push(f);
          else abertas.push(f);
       });
 
-      // Update UI Totals
       document.getElementById('totalMesText').innerText = `R$ ${tMes.toFixed(2).replace('.', ',')}`;
       document.getElementById('totalPagoText').innerText = `R$ ${tPago.toFixed(2).replace('.', ',')}`;
       document.getElementById('totalPendenteText').innerText = `R$ ${tPendente.toFixed(2).replace('.', ',')}`;
 
-      // -------------------------------------------------------------
       // Próximas 3 Faturas
-      // -------------------------------------------------------------
       const proxContainer = document.getElementById('proximasContasContainer');
       let proximas = [...abertas].sort((a,b) => new Date(a.data_vencimento) - new Date(b.data_vencimento)).slice(0, 3);
       if (proximas.length === 0) {
@@ -360,16 +403,12 @@
         proxContainer.innerHTML = htmlProx;
       }
 
-      // -------------------------------------------------------------
       // Tabela Abertas
-      // -------------------------------------------------------------
       const tbodyAbertas = document.getElementById('tbodyFaturas');
       if (abertas.length === 0) {
         tbodyAbertas.innerHTML = `<tr class="empty-row"><td colspan="5"><div class="empty-state"><span class="empty-icon">🧾</span><p>Não há contas pendentes no momento</p></div></td></tr>`;
       } else {
-        // Ordena por data
         abertas.sort((a,b) => new Date(a.data_vencimento) - new Date(b.data_vencimento));
-
         let h='';
         abertas.forEach(f => {
           const dias = calcularDias(f.data_vencimento);
@@ -384,17 +423,15 @@
             <td>${vDate}</td>
             <td><span class="status-badge ${cStatus}">${tStatus}</span></td>
             <td style="text-align:right;">
-               <button class="action-btn" style="background:rgba(16,185,129,.15); color:var(--green); border-radius:4px; margin-right:6px;" onclick="marcarComoPaga('${f.id}')" title="Marcar como Pago">✔ Pago</button>
-               <button class="action-btn delete-btn" onclick="deletarFatura('${f.id}')" title="Excluir">🗑️</button>
+               <button class="action-btn" style="background:rgba(16,185,129,.15); color:var(--green); border-radius:4px; margin-right:6px;" onclick="confirmarPagamento('${f.id}')" title="Marcar como Pago">✔ Pago</button>
+               <button class="action-btn delete-btn" onclick="confirmarExclusao('${f.id}')" title="Excluir">🗑️</button>
             </td>
           </tr>`;
         });
         tbodyAbertas.innerHTML = h;
       }
 
-      // -------------------------------------------------------------
       // Tabela Pagas
-      // -------------------------------------------------------------
       const tbodyPagas = document.getElementById('tbodyFaturasPagas');
       const pagasFiltradas = pagas.filter(f => {
          if (!f.data_pagamento) return false;
@@ -404,7 +441,6 @@
          return diffDays <= diasFiltroPagas;
       });
       
-      // Order reverse chronological
       pagasFiltradas.sort((a,b) => new Date(b.data_pagamento) - new Date(a.data_pagamento));
 
       if (pagasFiltradas.length === 0) {
@@ -420,7 +456,7 @@
               <td>${vDate}</td>
               <td>${pDate}</td>
               <td style="text-align:right;">
-                 <button class="action-btn delete-btn" onclick="deletarFatura('${f.id}')" title="Excluir">🗑️</button>
+                 <button class="action-btn delete-btn" onclick="confirmarExclusao('${f.id}')" title="Excluir">🗑️</button>
               </td>
             </tr>`;
          });
@@ -441,9 +477,18 @@
       document.getElementById('modal-nova-fatura').classList.add('hidden');
     }
 
-    async function marcarComoPaga(id) {
-       if (!confirm("Tem certeza que quer confirmar o pagamento desta conta? Ela será jogada para 'Contas Pagas'.")) return;
+    function confirmarPagamento(id) {
+       abrirConfirm('💰', 'Confirmar Pagamento', 'Ao confirmar, essa conta irá para o histórico.', '✔ Confirmar', 'var(--green)', () => efetivarPagamento(id));
+    }
+
+    function confirmarExclusao(id) {
+       abrirConfirm('🗑️', 'Excluir Conta', 'Deseja realmente remover esta conta permanentemente?', 'Apagar', 'var(--red)', () => executarDeletarFatura(id));
+    }
+
+    async function efetivarPagamento(id) {
        const hojeIso = new Date().toISOString();
+       const fAtual = faturasDesc.find(f => f.id === id);
+
        const { error } = await window.supabase
          .from('faturas_loja')
          .update({ pago: true, data_pagamento: hojeIso })
@@ -453,7 +498,37 @@
          mostrarErro("Erro ao marcar como pago.");
          return;
        }
+
+       // Renovação automática
+       if (fAtual && fAtual.renova_mensalmente) {
+          const proxVenc = new Date(fAtual.data_vencimento + 'T12:00:00');
+          proxVenc.setMonth(proxVenc.getMonth() + 1);
+
+          await window.supabase.from('faturas_loja').insert({
+             user_id: fAtual.user_id,
+             descricao: fAtual.descricao,
+             valor: fAtual.valor,
+             data_vencimento: proxVenc.toISOString().split('T')[0],
+             renova_mensalmente: true,
+             pago: false
+          });
+       }
+
        showToast("Conta confirmada como Paga!", "success");
+       carregarFaturas();
+    }
+
+    async function executarDeletarFatura(id) {
+       const { error } = await window.supabase
+         .from('faturas_loja')
+         .delete()
+         .eq('id', id);
+       
+       if (error) {
+         mostrarErro("Erro ao excluir conta.");
+         return;
+       }
+       showToast("Conta excluída!", "success");
        carregarFaturas();
     }
 
@@ -477,7 +552,6 @@
       btnSalvar.disabled = true;
       btnSalvar.innerText = "Salvando...";
 
-      // Se marcou que já foi paga, passamos a data_pagamento de agora (o user requisitou registrar data paga)
       let payload = {
          user_id: userId,
          descricao: desc,
@@ -509,28 +583,12 @@
       carregarFaturas();
     }
 
-    async function deletarFatura(id) {
-       if (!confirm("Deseja realmente remover esta conta permanentemente?")) return;
-       const { error } = await window.supabase
-         .from('faturas_loja')
-         .delete()
-         .eq('id', id);
-       
-       if (error) {
-         mostrarErro("Erro ao excluir conta.");
-         return;
-       }
-       showToast("Conta excluída!", "success");
-       carregarFaturas();
-    }
-
     function exportarFaturasCSV() {
        if (faturasDesc.length === 0) {
           mostrarErro("Não há faturas para exportar.");
           return;
        }
        
-       // BOM for Excel
        let csvContent = "data:text/csv;charset=utf-8,\\uFEFF";
        csvContent += "Descrição;Valor;Vencimento;Renova Mensalmente;Foi Paga?;Data Pgto\\n";
        
