@@ -218,7 +218,7 @@ async function carregarProdutos() {
 
   const { data, error } = await window.supabase
     .from('produtos')
-    .select('id, nome, categoria, estoque, preco, custo_compra')
+    .select('id, nome, categoria, estoque, preco, custo_compra, data_compra')
     .order('id', { ascending: true });
 
   if (error) {
@@ -233,6 +233,7 @@ async function carregarProdutos() {
     estoque: p.estoque ?? 0,
     preco: Number(p.preco ?? 0),
     custo: Number(p.custo_compra ?? 0),
+    data_compra: p.data_compra || null,
   }));
   popularProdutosVenda();
   renderProdutos();
@@ -1066,6 +1067,7 @@ async function salvarProduto() {
   const preco      = parseCurrencyBr(document.getElementById('prodPreco').value);
   const custoInput = document.getElementById('prodCusto').value;
   const custo      = parseCurrencyBr(custoInput);
+  const dataCompra = document.getElementById('prodDataCompra')?.value || null;
 
   if (!nome) {
     showToast('Informe o nome do produto!', 'error');
@@ -1080,7 +1082,7 @@ async function salvarProduto() {
     if (produtoEmEdicao) {
       const { error } = await window.supabase
         .from('produtos')
-        .update({ nome, categoria, estoque, preco, custo_compra: custo })
+        .update({ nome, categoria, estoque, preco, custo_compra: custo, data_compra: dataCompra })
         .eq('id', produtoEmEdicao);
 
       if (error) {
@@ -1092,7 +1094,7 @@ async function salvarProduto() {
     } else {
       const { error } = await window.supabase
         .from('produtos')
-        .insert({ nome, categoria, estoque, preco, custo_compra: custo });
+        .insert({ nome, categoria, estoque, preco, custo_compra: custo, data_compra: dataCompra });
 
       if (error) {
         showToast('Erro ao cadastrar produto.', 'error');
@@ -1112,9 +1114,9 @@ async function salvarProduto() {
   if (produtoEmEdicao) {
     const idx = produtos.findIndex(p => p.id === produtoEmEdicao);
     if (idx >= 0) {
-      produtos[idx] = { id: produtoEmEdicao, numero: produtos[idx].numero ?? (idx + 1), nome, categoria, estoque, preco, custo };
+      produtos[idx] = { id: produtoEmEdicao, numero: produtos[idx].numero ?? (idx + 1), nome, categoria, estoque, preco, custo, data_compra: dataCompra };
     } else {
-      produtos.push({ id: Date.now(), numero: produtos.length + 1, nome, categoria, estoque, preco, custo });
+      produtos.push({ id: Date.now(), numero: produtos.length + 1, nome, categoria, estoque, preco, custo, data_compra: dataCompra });
     }
     produtoEmEdicao = null;
     saveData();
@@ -1128,7 +1130,7 @@ async function salvarProduto() {
   const produto = {
     id: Date.now(),
     numero: produtos.length + 1,
-    nome, categoria, estoque, preco, custo,
+    nome, categoria, estoque, preco, custo, data_compra: dataCompra
   };
 
   produtos.push(produto);
@@ -1143,6 +1145,7 @@ function limparFormProduto() {
   ['prodNome','prodEstoque','prodPreco','prodCusto'].forEach(id => {
     document.getElementById(id).value = '';
   });
+  if(document.getElementById('prodDataCompra')) document.getElementById('prodDataCompra').value = '';
   document.getElementById('prodCategoria').value = 'Peças';
 }
 
@@ -1219,6 +1222,7 @@ function editarProduto(id) {
   const formatEdit = (num) => Number(num || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   document.getElementById('prodPreco').value     = formatEdit(p.preco);
   document.getElementById('prodCusto').value     = formatEdit(p.custo);
+  if(document.getElementById('prodDataCompra')) document.getElementById('prodDataCompra').value = p.data_compra || '';
   produtoEmEdicao = id;
   openModal('modal-novo-produto');
 }
