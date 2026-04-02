@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8" />
+  <script>(function(){var t=localStorage.getItem('scartech_theme');document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');if(t==='dark')document.documentElement.style.colorScheme='dark';})()</script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ScarTech — Fatura da Loja</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Sora:wght@400;600;700&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="style.css?v=20260329d" />
+</head>
+
+<body>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <img src="/logo.png" alt="ScarTech" style="width:36px;height:36px;border-radius:8px;" />
+      <span class="logo-text">ScarTech</span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <span class="nav-label">PRINCIPAL</span>
+        <a class="nav-item" data-page="dashboard" href="dashboard.html">
+          <span class="nav-icon">🏠</span>
+          <span class="nav-text">Dashboard</span>
+        </a>
+        <a class="nav-item" data-page="faturamento" href="faturamento.html">
+          <span class="nav-icon">💰</span>
+          <span class="nav-text">Faturamento</span>
+        </a>
+        <a class="nav-item active" data-page="fatura_da_loja" href="fatura_da_loja.html">
+          <span class="nav-icon">🧾</span>
+          <span class="nav-text">Fatura da Loja</span>
+        </a>
+      </div>
+      <div class="nav-section">
+        <span class="nav-label">GESTÃO</span>
+        <a class="nav-item" data-page="ordens" href="ordens.html">
+          <span class="nav-icon">📋</span>
+          <span class="nav-text">Ordens de Serviço</span>
+        </a>
+        <a class="nav-item" data-page="produtos" href="produtos.html">
+          <span class="nav-icon">📦</span>
+          <span class="nav-text">Produtos</span>
+        </a>
+        <a class="nav-item" data-page="fornecedores" href="fornecedores.html">
+          <span class="nav-icon">🤝</span>
+          <span class="nav-text">Fornecedores</span>
+        </a>
+        <a class="nav-item" data-page="vendas" href="vendas.html">
+          <span class="nav-icon">🛒</span>
+          <span class="nav-text">Vendas</span>
+        </a>
+      </div>
+      <!-- Item exclusivo para fornecedores - exibido via JS -->
+      <div class="nav-section" id="nav-fornecimento-section" style="display:none;">
+        <span class="nav-label">FORNECEDOR</span>
+        <a class="nav-item" data-page="fornecimento" href="fornecimento.html">
+          <span class="nav-icon">🏭</span>
+          <span class="nav-text">Meu Fornecimento</span>
+        </a>
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <a class="user-card user-card-link" href="perfil.html">
+        <div class="user-avatar" id="sidebarAvatar">ST</div>
+        <div class="user-info">
+          <span class="user-name" id="sidebarNome">Modo Teste</span>
+          <span class="user-role">Meu perfil →</span>
+        </div>
+      </a>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <div class="main-wrapper" id="mainWrapper">
+    <!-- TOP BAR -->
+    <header class="topbar">
+      <button class="menu-toggle" id="menuToggle" onclick="toggleSidebar()">
+        <span></span><span></span><span></span>
+      </button>
+      <div class="topbar-right">
+        <button class="theme-btn" onclick="toggleTheme()" title="Alternar tema">
+          <span id="themeIcon">&#9790;</span>
+        </button>
+        <button class="logout-btn" onclick="logout()">Sair</button>
+      </div>
+    </header>
+
+    <!-- PAGE CONTENT -->
+    <main class="page-content">
+      <div class="page" id="page-fatura">
+        <div class="page-header-simple">
+          <h2 class="page-title">🧾 Fatura da Loja</h2>
+          <p class="page-sub">Gerencie as despesas (aluguel, luz, parcelas, etc).</p>
+          <div class="header-actions" style="margin-top:16px; display:flex; gap:12px;">
+            <button class="btn-primary" onclick="abrirModalNovaFatura()">+ Nova Conta</button>
+            <button class="btn-secondary" onclick="exportarFaturasCSV()">📥 Baixar CSV</button>
+          </div>
+        </div>
+
+        <div class="table-card">
+          <div class="table-card-header">
+            <h3>Contas Registradas</h3>
+            <div class="table-actions">
+               <span style="font-weight:600;font-size:1.1rem">Total Mês: <span id="totalFaturasText" style="color:var(--red);">R$ 0,00</span></span>
+            </div>
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Descrição</th>
+                <th>Valor (R$)</th>
+                <th>Vencimento</th>
+                <th>Tipo</th>
+                <th style="text-align:right">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyFaturas">
+              <tr class="empty-row">
+                <td colspan="5">
+                  <div class="empty-state"><span class="empty-icon">🧾</span>
+                    <p>Carregando contas...</p>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal Nova Fatura -->
+  <div class="modal-overlay hidden" id="modal-nova-fatura">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>🧾 Registrar Nova Conta</h3>
+        <button class="modal-close" onclick="fecharModalFatura()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-row">
+          <div class="form-group" style="flex:1;">
+            <label>Descrição *</label>
+            <input type="text" class="form-input" id="faturaDescricao" placeholder="Ex: Conta de Luz, Aluguel" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Valor (R$) *</label>
+            <input type="number" class="form-input" id="faturaValor" placeholder="0,00" min="0" step="0.01" />
+          </div>
+          <div class="form-group">
+            <label>Data de Vencimento *</label>
+            <input type="date" class="form-input" id="faturaVencimento" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="checkbox-wrap" style="margin-top:10px;">
+              <input type="checkbox" id="faturaRenova" />
+              <span>Esta conta renova todo mês?</span>
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="fecharModalFatura()">Cancelar</button>
+        <button class="btn-primary" id="btnSalvarFatura" onclick="salvarFatura()">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="toast" id="toast"></div>
+
+  <!-- Auth Guard & Supabase -->
+  <script src="supabasecliente.js"></script>
+  <script src="auth-guard.js"></script>
+  <script src="app.js?v=20260329d"></script>
+  <script>
+    let faturas = [];
+    
+    function getNumericValue(id) {
+       const el = document.getElementById(id);
+       if (!el || !el.value) return 0;
+       return parseFloat(el.value.replace(',', '.'));
+    }
+
+    async function carregarFaturas() {
+      if (!window.supabase) return;
+      const { data: authData } = await window.supabase.auth.getUser();
+      const userId = authData?.user?.id;
+      if (!userId) return;
+
+      const { data, error } = await window.supabase
+        .from('faturas_loja')
+        .select('*')
+        .eq('user_id', userId)
+        .order('data_vencimento', { ascending: true });
+
+      if (error) {
+        console.error("Erro ao carregar faturas:", error);
+        mostrarErro("Erro ao carregar faturas da loja.");
+        return;
+      }
+
+      faturas = data || [];
+      renderizarFaturas();
+    }
+
+    function renderizarFaturas() {
+      const tbody = document.getElementById('tbodyFaturas');
+      if (!tbody) return;
+
+      if (faturas.length === 0) {
+        tbody.innerHTML = `<tr class="empty-row"><td colspan="5"><div class="empty-state"><span class="empty-icon">🧾</span><p>Sem contas cadastradas</p></div></td></tr>`;
+        document.getElementById('totalFaturasText').innerText = "R$ 0,00";
+        return;
+      }
+
+      let total = 0;
+      let html = '';
+      
+      faturas.forEach(fatura => {
+        total += Number(fatura.valor);
+        const dataVenc = new Date(fatura.data_vencimento + 'T12:00:00');
+        const dataVencFormatada = !isNaN(dataVenc.getTime()) ? dataVenc.toLocaleDateString('pt-BR') : fatura.data_vencimento;
+        const tipo = fatura.renova_mensalmente ? 'Mensal' : 'Neste Mês';
+        
+        html += `
+          <tr>
+            <td><strong>${fatura.descricao}</strong></td>
+            <td>R$ ${Number(fatura.valor).toFixed(2).replace('.', ',')}</td>
+            <td>${dataVencFormatada}</td>
+            <td><span class="status-badge ${fatura.renova_mensalmente ? 'status-amber' : 'status-purple'}">${tipo}</span></td>
+            <td style="text-align:right">
+               <button class="action-btn delete-btn" onclick="deletarFatura('${fatura.id}')" title="Excluir">🗑️</button>
+            </td>
+          </tr>
+        `;
+      });
+      
+      tbody.innerHTML = html;
+      document.getElementById('totalFaturasText').innerText = `R$ ${total.toFixed(2).replace('.', ',')}`;
+    }
+
+    function abrirModalNovaFatura() {
+      document.getElementById('faturaDescricao').value = '';
+      document.getElementById('faturaValor').value = '';
+      document.getElementById('faturaVencimento').value = '';
+      document.getElementById('faturaRenova').checked = false;
+      document.getElementById('modal-nova-fatura').classList.remove('hidden');
+    }
+
+    function fecharModalFatura() {
+      document.getElementById('modal-nova-fatura').classList.add('hidden');
+    }
+
+    async function salvarFatura() {
+      const desc = document.getElementById('faturaDescricao').value.trim();
+      const valor = getNumericValue('faturaValor');
+      const vencimento = document.getElementById('faturaVencimento').value;
+      const renova = document.getElementById('faturaRenova').checked;
+
+      if (!desc || valor <= 0 || !vencimento) {
+        mostrarErro("Preencha todos os campos obrigatórios corretamente.");
+        return;
+      }
+
+      const { data: authData } = await window.supabase.auth.getUser();
+      const userId = authData?.user?.id;
+      if (!userId) return;
+
+      const btnSalvar = document.getElementById('btnSalvarFatura');
+      btnSalvar.disabled = true;
+      btnSalvar.innerText = "Salvando...";
+
+      const { error } = await window.supabase
+        .from('faturas_loja')
+        .insert({
+           user_id: userId,
+           descricao: desc,
+           valor: valor,
+           data_vencimento: vencimento,
+           renova_mensalmente: renova
+        });
+
+      btnSalvar.disabled = false;
+      btnSalvar.innerText = "Salvar";
+
+      if (error) {
+        console.error("Erro ao salvar fatura:", error);
+        mostrarErro("Falha ao salvar a conta.");
+        return;
+      }
+
+      showToast("Conta adicionada com sucesso!", "success");
+      fecharModalFatura();
+      carregarFaturas();
+    }
+
+    async function deletarFatura(id) {
+       if (!confirm("Deseja realmente remover esta conta?")) return;
+       const { error } = await window.supabase
+         .from('faturas_loja')
+         .delete()
+         .eq('id', id);
+       
+       if (error) {
+         mostrarErro("Erro ao excluir conta.");
+         return;
+       }
+       showToast("Conta excluída!", "success");
+       carregarFaturas();
+    }
+
+    function exportarFaturasCSV() {
+       if (faturas.length === 0) {
+          mostrarErro("Não há faturas para exportar.");
+          return;
+       }
+       
+       // BOM for Excel
+       let csvContent = "data:text/csv;charset=utf-8,\\uFEFF";
+       csvContent += "Descrição;Valor;Vencimento;Renova Mensalmente\\n";
+       
+       faturas.forEach(f => {
+          const valorBR = Number(f.valor).toFixed(2).replace('.', ',');
+          let row = [
+             `"${f.descricao}"`,
+             `"${valorBR}"`,
+             f.data_vencimento,
+             f.renova_mensalmente ? "Sim" : "Não"
+          ].join(";");
+          csvContent += row + "\\n";
+       });
+       
+       const encodedUri = encodeURI(csvContent);
+       const link = document.createElement("a");
+       link.setAttribute("href", encodedUri);
+       link.setAttribute("download", "Minhas_Contas_Loja.csv");
+       document.body.appendChild(link);
+       link.click();
+       document.body.removeChild(link);
+    }
+    
+    function mostrarErro(msg) {
+      if(typeof showToast === 'function') {
+         showToast(msg, 'error');
+      } else {
+         const toast = document.getElementById('toast');
+         if(toast) {
+            toast.textContent = msg;
+            toast.className = 'toast show error';
+            setTimeout(() => toast.classList.remove('show'), 3000);
+         } else {
+            alert(msg);
+         }
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => {
+         carregarFaturas();
+      }, 500);
+    });
+  </script>
+</body>
+</html>
