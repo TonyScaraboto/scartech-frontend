@@ -285,7 +285,7 @@ async function carregarVendas() {
 
   const { data, error } = await window.supabase
     .from('vendas')
-    .select('id, cliente, produto, produto_id, qtd, valor, lucro, data, created_at')
+    .select('id, cliente, produto, produto_id, qtd, valor, lucro, data, created_at, pagamentos')
     .eq('user_id', userId)
     .order('id', { ascending: true });
 
@@ -302,6 +302,7 @@ async function carregarVendas() {
     qtd: v.qtd ?? 1,
     valor: Number(v.valor ?? 0),
     lucro: Number(v.lucro ?? 0),
+    pagamentos: v.pagamentos || [],
     data: formatDateBR(v.data || v.created_at),
     dataIso: v.data || v.created_at,
     timestamp: v.created_at ? new Date(v.created_at).getTime() : Date.now(),
@@ -1265,6 +1266,85 @@ function exportarProdutosCSV() {
 }
 
 // ==================== VENDAS ====================
+function addPagamentoVenda(metodo = 'Pix', valor = 0) {
+  const container = document.getElementById('vendaPagamentoList');
+  if (!container) return;
+  
+  const div = document.createElement('div');
+  div.style.display = 'flex';
+  div.style.gap = '8px';
+  div.style.alignItems = 'center';
+  div.className = 'pagamento-row';
+  
+  div.innerHTML = `
+    <select class="form-input pagamento-metodo" style="flex: 1;">
+      <option value="Pix" ${metodo === 'Pix' ? 'selected' : ''}>Pix</option>
+      <option value="Cartão de Crédito" ${metodo === 'Cartão de Crédito' ? 'selected' : ''}>Cartão de Crédito</option>
+      <option value="Cartão de Débito" ${metodo === 'Cartão de Débito' ? 'selected' : ''}>Cartão de Débito</option>
+      <option value="Dinheiro" ${metodo === 'Dinheiro' ? 'selected' : ''}>Dinheiro</option>
+    </select>
+    <input type="number" class="form-input pagamento-valor" style="width: 100px;" min="0" step="0.01" value="${valor > 0 ? valor.toFixed(2) : ''}" placeholder="0,00" oninput="atualizarRestantePagamento()" />
+    <button type="button" class="btn-secondary" style="padding: 6px; color: var(--amber);" onclick="this.parentElement.remove(); atualizarRestantePagamento();">✕</button>
+  `;
+  container.appendChild(div);
+  atualizarRestantePagamento();
+}
+
+function distributingOrResettingPayments() {
+  const container = document.getElementById('vendaPagamentoList');
+  if (container.children.length === 0) {
+    addPagamentoVenda('Pix', parseFloat(document.getElementById('vendaValor').value) || 0);
+  } else {
+    atualizarRestantePagamento();
+  }
+}
+
+function distribuirPagamentosVenda() {
+  const container = document.getElementById('vendaPagamentoList');
+  const valorTotal = parseFloat(document.getElementById('vendaValor').value) || 0;
+  if(container && container.children.length === 1) {
+    container.querySelector('.pagamento-valor').value = valorTotal.toFixed(2);
+  } else if (container && container.children.length === 0) {
+    addPagamentoVenda('Pix', valorTotal);
+  }
+  atualizarRestantePagamento();
+}
+
+function atualizarRestantePagamento() {
+  const valorTotal = parseFloat(document.getElementById('vendaValor').value) || 0;
+  const linhas = document.querySelectorAll('#vendaPagamentoList .pagamento-valor');
+  let soma = 0;
+  linhas.forEach(input => {
+    soma += parseFloat(input.value) || 0;
+  });
+  const restante = valorTotal - soma;
+  const label = document.getElementById('vendaPagamentoRestante');
+  if (label) {
+    label.textContent = `Restante: R$ ${Math.max(0, Math.abs(restante)).toFixed(2)}`;
+    if (Math.abs(restante) > 0.01) {
+      label.style.color = 'var(--amber)';
+      if (restante < -0.01) label.textContent = `Excesso: R$ ${Math.abs(restante).toFixed(2)}`;
+    } else {
+      label.style.color = 'var(--green)';
+      label.textContent = 'Pagamento Completo';
+    }
+  }
+}
+
+function obterPagamentosVenda() {
+  const container = document.getElementById('vendaPagamentoList');
+  if (!container) return [];
+  const pagamentos = [];
+  container.querySelectorAll('.pagamento-row').forEach(row => {
+    const metodo = row.querySelector('.pagamento-metodo').value;
+    const valor = parseFloat(row.querySelector('.pagamento-valor').value) || 0;
+    if (valor > 0) {
+      pagamentos.push({ metodo, valor });
+    }
+  });
+  return pagamentos;
+}
+
 async function salvarVenda() {
   const cliente = document.getElementById('vendaCliente').value.trim();
   const produtoId = parseInt(document.getElementById('vendaProduto').value, 10);
@@ -1283,6 +1363,13 @@ async function salvarVenda() {
   }
 
   const valor = valorInput > 0 ? valorInput : (produtoSel.preco * qtd);
+  const pagamentos = obterPagamentosVenda();
+  const somaPagamentos = pagamentos.reduce((acc, p) => acc + p.valor, 0);
+
+  if (Math.abs(somaPagamentos - valor) > 0.01) {
+    showToast('A soma das formas de pagamento deve ser igual ao valor total.', 'error');
+    return;
+  }
 
   if (produtoSel.estoque < qtd) {
     showToast('Estoque insuficiente para esta venda.', 'error');
@@ -1291,24 +1378,38 @@ async function salvarVenda() {
 
   if (hasSupabaseClient()) {
     const { error } = await window.supabase
-      .rpc('registrar_venda', {
+      .rpc('registrar_venda_v2', {
         p_produto_id: produtoId,
         p_cliente: cliente,
         p_qtd: qtd,
         p_valor: valor,
+        p_pagamentos: pagamentos
       });
     if (error) {
       const raw = (error.message || '').toLowerCase();
-      if (raw.includes('estoque_insuficiente')) {
+      // Compatibilidade caso o usuário não tenha atualizado o banco ainda:
+      if (raw.includes('could not find the function') || raw.includes('registrar_venda_v2')) {
+        // Fallback pro rpc antigo sem pagamentos
+        const fallback = await window.supabase.rpc('registrar_venda', {
+          p_produto_id: produtoId, p_cliente: cliente, p_qtd: qtd, p_valor: valor
+        });
+        if (fallback.error) {
+           showToast(fallback.error.message || 'Erro ao registrar venda.', 'error');
+           return;
+        }
+      } else if (raw.includes('estoque_insuficiente')) {
         showToast('Estoque insuficiente para esta venda.', 'error');
+        return;
       } else if (raw.includes('produto_nao_encontrado')) {
         showToast('Produto não encontrado.', 'error');
+        return;
       } else if (raw.includes('forbidden')) {
         showToast('Produto não pertence ao usuário.', 'error');
+        return;
       } else {
         showToast(error.message || 'Erro ao registrar venda.', 'error');
+        return;
       }
-      return;
     }
 
     closeModal('modal-nova-venda');
@@ -1329,6 +1430,7 @@ async function salvarVenda() {
     qtd,
     valor,
     lucro,
+    pagamentos,
     data: new Date().toLocaleDateString('pt-BR'),
     dataIso: new Date().toISOString(),
     timestamp: Date.now(),
@@ -1348,6 +1450,11 @@ function limparFormVenda() {
   if (sel) sel.value = '';
   const ids = ['vendaCliente','vendaQtd','vendaValor'];
   ids.forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  const container = document.getElementById('vendaPagamentoList');
+  if (container) {
+    container.innerHTML = '';
+    addPagamentoVenda('Pix', 0);
+  }
 }
 
 function popularProdutosVenda() {
@@ -1378,6 +1485,7 @@ function atualizarPrecoVenda() {
   if (!produtoSel) return;
   const qtd = parseInt(qtdEl.value) || 1;
   valEl.value = (produtoSel.preco * qtd).toFixed(2);
+  distribuirPagamentosVenda();
 }
 
 function renderVendas(lista = null) {
@@ -1401,52 +1509,150 @@ function renderVendas(lista = null) {
     return;
   }
 
-  tbody.innerHTML = dados.map((v, idx) => `
+  tbody.innerHTML = dados.map((v, idx) => {
+    let pagamentosStr = '-';
+    if (v.pagamentos && Array.isArray(v.pagamentos) && v.pagamentos.length > 0) {
+      pagamentosStr = v.pagamentos.map(p => `${escapeHtml(p.metodo)} (R$ ${Number(p.valor).toFixed(2)})`).join('<br>');
+    }
+    return `
     <tr>
       <td><strong>#${v.numero ?? (idx + 1)}</strong></td>
       <td>${escapeHtml(v.cliente)}</td>
       <td>${escapeHtml(v.produto)}</td>
       <td>${v.qtd}</td>
       <td>R$ ${v.valor.toFixed(2)}</td>
+      <td style="font-size: 0.85em; color: var(--text-secondary);">${pagamentosStr}</td>
       <td>R$ ${Number(v.lucro ?? 0).toFixed(2)}</td>
       <td>${v.data}</td>
       <td>
         <button class="action-btn danger" onclick="excluirVenda(${v.id})">Excluir</button>
       </td>
-    </tr>`).join('');
+    </tr>`;
+  }).join('');
 
   atualizarStatsVendas(dados);
   renderRelatoriosVendasSidebar(dados);
 }
 
+let vendaIdParaExcluir = null;
+
 function excluirVenda(id) {
-  if (!confirm('Deseja excluir esta venda?')) return;
-  if (hasSupabaseClient()) {
-    window.supabase
-      .from('vendas')
-      .delete()
-      .eq('id', id)
-      .then(({ error }) => {
-        if (error) {
-          showToast('Erro ao excluir venda.', 'error');
-          return;
-        }
-        carregarVendas();
-        showToast('Venda excluída.', 'error');
-      });
+  vendaIdParaExcluir = id;
+  const passEl = document.getElementById('excluirVendaSenha');
+  if (passEl) passEl.value = '';
+  openModal('modal-excluir-venda');
+}
+
+async function confirmarExclusaoVenda() {
+  if (vendaIdParaExcluir === null) return;
+  const id = vendaIdParaExcluir;
+  const senha = document.getElementById('excluirVendaSenha').value;
+
+  if (!senha) {
+    showToast('Informe sua senha para confirmar.', 'error');
     return;
   }
+
+  if (hasSupabaseClient()) {
+    const btn = document.getElementById('btnConfirmarExcluirVenda');
+    btn.textContent = 'Aguarde...';
+    btn.disabled = true;
+
+    try {
+      const { data: userData } = await window.supabase.auth.getUser();
+      if (!userData || !userData.user) {
+         showToast('Sessão inválida. Faça login novamente.', 'error');
+         return;
+      }
+      
+      const { error: signInError } = await window.supabase.auth.signInWithPassword({
+        email: userData.user.email,
+        password: senha
+      });
+
+      if (signInError) {
+        showToast('Senha incorreta.', 'error');
+        return;
+      }
+
+      // Se o usuário marcou para devolver ao estoque, precisamos incrementar o produto
+      const devolverEstoque = document.getElementById('devolverEstoqueVenda')?.checked;
+      if (devolverEstoque) {
+        const venda = vendas.find(v => v.id === id);
+        if (venda && venda.produto_id) {
+          // Busca o produto atual para somar
+          const { data: prodData } = await window.supabase
+            .from('produtos')
+            .select('estoque')
+            .eq('id', venda.produto_id)
+            .single();
+
+          if (prodData) {
+            await window.supabase
+              .from('produtos')
+              .update({ estoque: (prodData.estoque || 0) + (venda.qtd || 0) })
+              .eq('id', venda.produto_id);
+          }
+        }
+      }
+
+      const { error } = await window.supabase
+        .from('vendas')
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        showToast('Erro ao excluir venda.', 'error');
+        return;
+      }
+
+      await carregarVendas();
+      await carregarProdutos(); // Garante atualização do estoque na UI
+      showToast('Venda excluída com sucesso.');
+      closeModal('modal-excluir-venda');
+      vendaIdParaExcluir = null;
+    } catch(err) {
+      showToast('Erro no sistema.', 'error');
+    } finally {
+      if (btn) {
+        btn.textContent = 'Confirmar Exclusão';
+        btn.disabled = false;
+      }
+    }
+    return;
+  }
+
+  // Fallback banco local
+  const devolverEstoqueLocal = document.getElementById('devolverEstoqueVenda')?.checked;
+  const vLocal = vendas.find(v => v.id === id);
+  if (devolverEstoqueLocal && vLocal && vLocal.produto_id) {
+     const pIdx = produtos.findIndex(p => p.id === vLocal.produto_id);
+     if (pIdx >= 0) {
+        produtos[pIdx].estoque += (vLocal.qtd || 0);
+     }
+  }
+
   vendas = vendas.filter(v => v.id !== id);
   saveData();
   renderVendas();
-  showToast('Venda excluída.', 'error');
+  renderProdutos();
+  showToast('Venda excluída com sucesso.');
+  closeModal('modal-excluir-venda');
+  vendaIdParaExcluir = null;
 }
 
 function atualizarStatsVendas(lista = vendas) {
   const total = lista.reduce((s, v) => s + v.valor, 0);
   const ticket = lista.length > 0 ? total / lista.length : 0;
-  const hoje = new Date().toLocaleDateString('pt-BR');
-  const hojeCount = lista.filter(v => v.data === hoje).length;
+  
+  // Comparação de data mais robusta para "Vendas Hoje"
+  const startOfToday = new Date().setHours(0, 0, 0, 0);
+  const endOfToday = new Date().setHours(23, 59, 59, 999);
+  
+  const hojeCount = lista.filter(v => {
+    const vDate = new Date(v.timestamp || v.dataIso);
+    return vDate >= startOfToday && vDate <= endOfToday;
+  }).length;
 
   const el = (id, val) => { const e = document.getElementById(id); if(e) e.textContent = val; };
   el('totalVendas', `R$ ${total.toFixed(2)}`);
