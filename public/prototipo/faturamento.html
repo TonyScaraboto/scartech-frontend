@@ -398,8 +398,8 @@
     let chartComparativoAnual = null;
     let filtroDespesas = 'ambos';
 
-    document.addEventListener('DOMContentLoaded', () => {
-      setTimeout(() => {
+    document.addEventListener('DOMContentLoaded', function() {
+      setTimeout(function() {
         carregarFaturasEPlotar();
       }, 700);
     });
@@ -430,17 +430,26 @@
       renderizarDespesas();
     }
 
+    function _premiumTT(isDark) {
+      return {
+        backgroundColor: isDark ? 'rgba(15,23,42,0.95)' : 'rgba(15,23,42,0.92)',
+        titleColor: '#fff', bodyColor: '#CBD5E1',
+        titleFont: { family: 'Plus Jakarta Sans', weight: '600', size: 13 },
+        bodyFont: { family: 'Plus Jakarta Sans', size: 12 },
+        padding: 14, cornerRadius: 10, boxPadding: 6,
+        borderColor: 'rgba(255,255,255,0.08)', borderWidth: 1,
+      };
+    }
+
     function renderizarDespesas() {
       const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
       const colors = {
         grid: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)',
         text: isDark ? '#8A9BB0' : '#637083',
-        prod: '#10B981',
-        cont: '#F59E0B'
       };
 
-      const ctx = document.getElementById('chartDespesasMes');
-      if(!ctx) return;
+      const cvs = document.getElementById('chartDespesasMes');
+      if(!cvs) return;
 
       const hoje = new Date();
       const mAtual = hoje.getMonth();
@@ -449,9 +458,8 @@
       let gastoProdutos = 0;
       let gastoContas = 0;
 
-      // Calcular produtos comprados este mês
       if(window.produtos) {
-        window.produtos.forEach(p => {
+        window.produtos.forEach(function(p) {
           if(p.data_compra) {
             const d = new Date(p.data_compra + 'T12:00:00');
             if(d.getMonth() === mAtual && d.getFullYear() === aAtual) {
@@ -461,8 +469,7 @@
         });
       }
 
-      // Calcular contas pagas este mês
-      contas_faturamento.forEach(f => {
+      contas_faturamento.forEach(function(f) {
         if(f.pago && f.data_pagamento) {
           const d = new Date(f.data_pagamento);
           if(d.getMonth() === mAtual && d.getFullYear() === aAtual) {
@@ -474,21 +481,36 @@
       let dataValues = [];
       let dataLabels = [];
       let bgColors = [];
+      let hoverColors = [];
+
+      const ctxC = cvs.getContext('2d');
+      const gradProd = ctxC.createLinearGradient(0, 0, 0, 280);
+      gradProd.addColorStop(0, 'rgba(16,185,129,0.85)');
+      gradProd.addColorStop(1, 'rgba(16,185,129,0.3)');
+      
+      const gradCont = ctxC.createLinearGradient(0, 0, 0, 280);
+      gradCont.addColorStop(0, 'rgba(245,158,11,0.85)');
+      gradCont.addColorStop(1, 'rgba(245,158,11,0.3)');
 
       if(filtroDespesas === 'produtos' || filtroDespesas === 'ambos') {
         dataLabels.push('Produtos');
         dataValues.push(gastoProdutos);
-        bgColors.push(colors.prod);
+        bgColors.push(gradProd);
+        hoverColors.push('#10B981');
       }
       if(filtroDespesas === 'contas' || filtroDespesas === 'ambos') {
         dataLabels.push('Contas Pagas');
         dataValues.push(gastoContas);
-        bgColors.push(colors.cont);
+        bgColors.push(gradCont);
+        hoverColors.push('#F59E0B');
       }
 
       if(chartDespesas) chartDespesas.destroy();
 
-      chartDespesas = new Chart(ctx, {
+      var ttDesp = _premiumTT(isDark);
+      ttDesp.callbacks = { label: function(c) { return ' R$ ' + c.parsed.y.toLocaleString('pt-BR', {minimumFractionDigits:2}); } };
+
+      chartDespesas = new Chart(cvs, {
         type: 'bar',
         data: {
           labels: dataLabels,
@@ -496,21 +518,22 @@
             label: 'Gasto no Mês (R$)',
             data: dataValues,
             backgroundColor: bgColors,
-            borderRadius: 6
+            hoverBackgroundColor: hoverColors,
+            borderRadius: 10,
+            borderSkipped: false,
+            borderWidth: 0,
+            barPercentage: 0.5,
+            categoryPercentage: 0.6,
           }]
         },
         options: {
           responsive: true, maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              backgroundColor: 'rgba(15,24,35,0.9)', titleColor: '#fff', bodyColor: '#aaa', padding: 10,
-              callbacks: { label: ctx => 'R$ ' + ctx.parsed.y.toLocaleString('pt-BR', {minimumFractionDigits:2}) }
-            }
-          },
+          animation: { duration: 800, easing: 'easeOutQuart' },
+          interaction: { mode: 'index', intersect: false },
+          plugins: { legend: { display: false }, tooltip: ttDesp },
           scales: {
-             x: { grid: { display: false }, ticks: { color: colors.text, font: {family:'Plus Jakarta Sans'} } },
-             y: { grid: { color: colors.grid }, ticks: { color: colors.text, font: {family:'Plus Jakarta Sans'} } }
+             x: { grid: { display: false }, ticks: { color: colors.text, font: {family:'Plus Jakarta Sans', weight: '600', size: 13} }, border: { display: false } },
+             y: { grid: { color: colors.grid, drawBorder: false }, ticks: { color: colors.text, font: {family:'Plus Jakarta Sans'}, callback: function(v) { return 'R$ ' + Number(v).toLocaleString('pt-BR'); } }, border: { display: false } }
           }
         }
       });
@@ -520,8 +543,8 @@
       const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
       const cText = isDark ? '#8A9BB0' : '#637083';
       
-      const ctx = document.getElementById('chartPizzaDespesas');
-      if(!ctx) return;
+      const cvs = document.getElementById('chartPizzaDespesas');
+      if(!cvs) return;
 
       const hoje = new Date();
       const mAtual = hoje.getMonth();
@@ -529,11 +552,11 @@
 
       let labels = [];
       let dataVals = [];
-      let colors = [];
+      let clrs = [];
 
       let gastoEstoque = 0;
       if(window.produtos) {
-        window.produtos.forEach(p => {
+        window.produtos.forEach(function(p) {
           if(p.data_compra) {
             const d = new Date(p.data_compra + 'T12:00:00');
             if(d.getMonth() === mAtual && d.getFullYear() === aAtual) {
@@ -545,19 +568,19 @@
       if(gastoEstoque > 0) {
         labels.push('Reposição de Estoque');
         dataVals.push(gastoEstoque);
-        colors.push('#10B981');
+        clrs.push('#10B981');
       }
 
       const paleta = ['#F59E0B', '#3B82F6', '#8B5CF6', '#EC4899', '#14B8A6'];
       let corIdx = 0;
 
-      contas_faturamento.forEach(f => {
+      contas_faturamento.forEach(function(f) {
         if(f.pago && f.data_pagamento) {
           const d = new Date(f.data_pagamento);
           if(d.getMonth() === mAtual && d.getFullYear() === aAtual) {
             labels.push(f.descricao || 'Despesa Lançada');
             dataVals.push(Number(f.valor || 0));
-            colors.push(paleta[corIdx % paleta.length]);
+            clrs.push(paleta[corIdx % paleta.length]);
             corIdx++;
           }
         }
@@ -566,18 +589,18 @@
       if(labels.length === 0) {
         labels.push('Sem despesas registradas');
         dataVals.push(1);
-        colors.push(isDark ? '#334155' : '#E2E8F0');
+        clrs.push(isDark ? '#334155' : '#E2E8F0');
       }
 
       if(chartPizza) chartPizza.destroy();
 
-      chartPizza = new Chart(ctx, {
+      chartPizza = new Chart(cvs, {
         type: 'doughnut',
         data: {
           labels: labels,
           datasets: [{
             data: dataVals,
-            backgroundColor: colors,
+            backgroundColor: clrs,
             borderWidth: 0, hoverOffset: 6
           }]
         },
@@ -588,9 +611,9 @@
             tooltip: {
               backgroundColor: 'rgba(15,24,35,0.9)', titleColor: '#fff', bodyColor: '#aaa', padding: 10,
               callbacks: { 
-                label: ctx => {
-                  if(ctx.label === 'Sem despesas registradas') return ' R$ 0,00';
-                  return ' R$ ' + ctx.parsed.toLocaleString('pt-BR', {minimumFractionDigits:2}) 
+                label: function(c) {
+                  if(c.label === 'Sem despesas registradas') return ' R$ 0,00';
+                  return ' R$ ' + c.parsed.toLocaleString('pt-BR', {minimumFractionDigits:2});
                 }
               }
             }
@@ -601,18 +624,18 @@
     }
 
     function renderizarComparativoAnual() {
-      const ctx = document.getElementById('chartComparativoAnual');
-      if(!ctx) return;
+      const cvs = document.getElementById('chartComparativoAnual');
+      if(!cvs) return;
       
       const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-      const c = { text: isDark ? '#8A9BB0' : '#637083', grid: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)', teal: '#0E9FAA', purple: '#6366F1', green: '#10B981', red: '#EF4444' };
+      const c = { text: isDark ? '#8A9BB0' : '#637083', grid: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)', teal: '#0E9FAA', green: '#10B981', red: '#EF4444' };
 
       const meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
       const rec = Array(12).fill(0);
       const desp = Array(12).fill(0);
       const saldo = Array(12).fill(0);
 
-      const toDate = (dataBase) => {
+      var toDate = function(dataBase) {
         if(!dataBase) return null;
         let d = new Date(dataBase);
         if(Number.isNaN(d.getTime()) && typeof dataBase === 'string') {
@@ -623,14 +646,14 @@
       };
 
       if(window.vendas) {
-        window.vendas.forEach(v => {
+        window.vendas.forEach(function(v) {
           const d = toDate(v.dataIso || v.data);
           if(d) rec[d.getMonth()] += Number(v.valor || 0);
         });
       }
 
       if(window.ordens) {
-        window.ordens.forEach(o => {
+        window.ordens.forEach(function(o) {
           const st = (o.status || '').toLowerCase();
           if(st.includes('conclu')) {
             const d = toDate(o.data || o.created_at);
@@ -639,7 +662,7 @@
         });
       }
 
-      contas_faturamento.forEach(f => {
+      contas_faturamento.forEach(function(f) {
         if(f.pago) {
           const d = toDate(f.data_pagamento);
           if(d) desp[d.getMonth()] += Number(f.valor || 0);
@@ -647,7 +670,7 @@
       });
 
       if(window.produtos) {
-        window.produtos.forEach(p => {
+        window.produtos.forEach(function(p) {
           if(p.data_compra) {
             const d = toDate(p.data_compra + 'T12:00:00');
             if(d) desp[d.getMonth()] += (p.custo || 0) * (p.estoque > 0 ? p.estoque : 1);
@@ -661,7 +684,23 @@
 
       if(chartComparativoAnual) chartComparativoAnual.destroy();
 
-      chartComparativoAnual = new Chart(ctx, {
+      const ctxC = cvs.getContext('2d');
+      const saldoGrad = ctxC.createLinearGradient(0, 0, 0, 320);
+      saldoGrad.addColorStop(0, isDark ? 'rgba(14,159,170,0.22)' : 'rgba(14,159,170,0.12)');
+      saldoGrad.addColorStop(1, 'rgba(14,159,170,0)');
+
+      const greenGrad = ctxC.createLinearGradient(0, 0, 0, 320);
+      greenGrad.addColorStop(0, 'rgba(16,185,129,0.8)');
+      greenGrad.addColorStop(1, 'rgba(16,185,129,0.35)');
+
+      const redGrad = ctxC.createLinearGradient(0, 0, 0, 320);
+      redGrad.addColorStop(0, 'rgba(239,68,68,0.8)');
+      redGrad.addColorStop(1, 'rgba(239,68,68,0.35)');
+
+      var ttComp = _premiumTT(isDark);
+      ttComp.callbacks = { label: function(ctx) { return ' ' + ctx.dataset.label + ': R$ ' + ctx.parsed.y.toLocaleString('pt-BR', {minimumFractionDigits:2}); } };
+
+      chartComparativoAnual = new Chart(cvs, {
         type: 'bar',
         data: {
           labels: meses,
@@ -671,39 +710,64 @@
               label: 'Saldo Líquido',
               data: saldo,
               borderColor: c.teal,
-              backgroundColor: c.teal,
-              borderWidth: 2,
+              backgroundColor: saldoGrad,
+              borderWidth: 3,
               tension: 0.4,
-              fill: false
+              fill: true,
+              pointBackgroundColor: '#fff',
+              pointBorderColor: c.teal,
+              pointBorderWidth: 2.5,
+              pointRadius: 4,
+              pointHoverRadius: 7,
+              pointHoverBackgroundColor: c.teal,
+              pointHoverBorderColor: '#fff',
+              pointHoverBorderWidth: 3,
+              order: 0,
             },
             {
               type: 'bar',
               label: 'Receitas',
               data: rec,
-              backgroundColor: c.green,
-              borderRadius: 4
+              backgroundColor: greenGrad,
+              hoverBackgroundColor: c.green,
+              borderRadius: 6,
+              borderSkipped: false,
+              borderWidth: 0,
+              order: 1,
             },
             {
               type: 'bar',
               label: 'Despesas',
               data: desp,
-              backgroundColor: c.red,
-              borderRadius: 4
+              backgroundColor: redGrad,
+              hoverBackgroundColor: c.red,
+              borderRadius: 6,
+              borderSkipped: false,
+              borderWidth: 0,
+              order: 2,
             }
           ]
         },
         options: {
           responsive: true, maintainAspectRatio: false,
+          animation: { duration: 900, easing: 'easeOutQuart' },
+          interaction: { mode: 'index', intersect: false },
           plugins: {
-            legend: { position: 'bottom', labels: { color: c.text, font: {family:'Plus Jakarta Sans'}, padding: 20 } },
-            tooltip: {
-              backgroundColor: 'rgba(15,24,35,0.9)', titleColor: '#fff', bodyColor: '#aaa', padding: 10,
-              callbacks: { label: ctx => ctx.dataset.label + ': R$ ' + ctx.parsed.y.toLocaleString('pt-BR', {minimumFractionDigits:2}) }
-            }
+            legend: { 
+              position: 'bottom', 
+              labels: { 
+                color: c.text, 
+                font: { family:'Plus Jakarta Sans', weight: '500', size: 12 }, 
+                padding: 20,
+                usePointStyle: true,
+                pointStyle: 'circle'
+              } 
+            },
+            tooltip: ttComp
           },
           scales: {
-             x: { grid: { display: false }, stacked: false, ticks: { color: c.text, font: {family:'Plus Jakarta Sans'} } },
-             y: { grid: { color: c.grid }, ticks: { color: c.text, font: {family:'Plus Jakarta Sans'} } }
+             x: { grid: { display: false }, stacked: false, ticks: { color: c.text, font: {family:'Plus Jakarta Sans', weight: '500'}, maxRotation: 0 }, border: { display: false } },
+             y: { grid: { color: c.grid, drawBorder: false }, ticks: { color: c.text, font: {family:'Plus Jakarta Sans'}, callback: function(v) { return 'R$ ' + Number(v).toLocaleString('pt-BR'); } }, border: { display: false } }
           }
         }
       });
@@ -711,4 +775,3 @@
   </script>
 </body>
 </html>
-

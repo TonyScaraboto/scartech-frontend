@@ -268,7 +268,7 @@ async function carregarOrdens() {
 
   const { data, error } = await window.supabase
     .from('ordens_servico')
-    .select('id, cliente, equipamento, status, valor, descricao, data, created_at')
+    .select('id, cliente, equipamento, status, valor, descricao, data, created_at, nome_assistencia, documento_cliente, telefone_cliente, termo_garantia, previsao_entrega, foto_aparelho, assinatura_tecnico, assinatura_cliente')
     .eq('user_id', userId)
     .order('id', { ascending: true });
 
@@ -286,6 +286,14 @@ async function carregarOrdens() {
     valor: Number(o.valor ?? 0),
     descricao: o.descricao || '',
     data: formatDateBR(o.data || o.created_at),
+    nome_assistencia: o.nome_assistencia || '',
+    documento_cliente: o.documento_cliente || '',
+    telefone_cliente: o.telefone_cliente || '',
+    termo_garantia: o.termo_garantia || '',
+    previsao_entrega: o.previsao_entrega || '',
+    foto_aparelho: o.foto_aparelho || '',
+    assinatura_tecnico: o.assinatura_tecnico || '',
+    assinatura_cliente: o.assinatura_cliente || '',
   }));
   renderOrdens();
   atualizarCardsResumo();
@@ -725,6 +733,14 @@ async function salvarOrdem() {
         status,
         valor,
         descricao,
+        nome_assistencia: data.nomeAssistencia || null,
+        documento_cliente: data.documentoCliente || null,
+        telefone_cliente: data.telefoneCliente || null,
+        termo_garantia: data.termoGarantia || null,
+        previsao_entrega: data.previsaoEntrega || null,
+        foto_aparelho: mediaData.fotoAparelho || null,
+        assinatura_tecnico: mediaData.assinaturaTecnico || null,
+        assinatura_cliente: mediaData.assinaturaCliente || null,
         data: new Date().toISOString().slice(0, 10),
         updated_at: new Date().toISOString(),
       };
@@ -923,19 +939,19 @@ function editarOrdem(id) {
   if (!o) return;
   const detalhes = o.detalhesOS || getDetalhesFromCache(o) || {};
   const savedAssist = localStorage.getItem('scartech_assistencia_nome') || 'ScarTech Solutions';
-  setInputValue('nomeAssistencia', detalhes.nomeAssistencia || savedAssist);
-  setInputValue('nomeCliente', detalhes.nomeCliente || o.cliente || '');
-  setInputValue('documentoCliente', detalhes.documentoCliente || '');
-  setInputValue('telefoneCliente', detalhes.telefoneCliente || '');
-  setInputValue('modeloAparelho', detalhes.modeloAparelho || o.equipamento || '');
-  setInputValue('defeitoApresentado', detalhes.defeitoApresentado || o.descricao || '');
-  setInputValue('valorConserto', detalhes.valorConserto || o.valor || '');
-  setInputValue('previsaoEntrega', detalhes.previsaoEntrega || '');
-  setInputValue('termoGarantia', detalhes.termoGarantia || 'Garantia de 90 dias para o serviço realizado, conforme legislação vigente. A garantia não cobre danos causados por mau uso, quedas, contato com líquidos ou tentativa de reparo por terceiros.');
+  setInputValue('nomeAssistencia', o.nome_assistencia || detalhes.nomeAssistencia || savedAssist);
+  setInputValue('nomeCliente', o.cliente || detalhes.nomeCliente || '');
+  setInputValue('documentoCliente', o.documento_cliente || detalhes.documentoCliente || '');
+  setInputValue('telefoneCliente', o.telefone_cliente || detalhes.telefoneCliente || '');
+  setInputValue('modeloAparelho', o.equipamento || detalhes.modeloAparelho || '');
+  setInputValue('defeitoApresentado', o.descricao || detalhes.defeitoApresentado || '');
+  setInputValue('valorConserto', o.valor || detalhes.valorConserto || '');
+  setInputValue('previsaoEntrega', o.previsao_entrega || detalhes.previsaoEntrega || '');
+  setInputValue('termoGarantia', o.termo_garantia || detalhes.termoGarantia || 'Garantia de 90 dias para o serviço realizado, conforme legislação vigente. A garantia não cobre danos causados por mau uso, quedas, contato com líquidos ou tentativa de reparo por terceiros.');
   setInputValue('ordemStatus', o.status || 'Aberta');
-  applyPhotoToForm(detalhes.fotoAparelho || '');
-  applySignatureToPad('signatureTecnico', detalhes.assinaturaTecnico || '');
-  applySignatureToPad('signatureCliente', detalhes.assinaturaCliente || '');
+  applyPhotoToForm(o.foto_aparelho || detalhes.fotoAparelho || '');
+  applySignatureToPad('signatureTecnico', o.assinatura_tecnico || detalhes.assinaturaTecnico || '');
+  applySignatureToPad('signatureCliente', o.assinatura_cliente || detalhes.assinaturaCliente || '');
   ordemEmEdicao = id;
   openModal('modal-nova-ordem');
 }
@@ -952,6 +968,21 @@ function verDetalhesOrdem(id) {
   const ordem = ordens.find((item) => item.id === id);
   if (!ordem) return;
   const detalhes = ordem.detalhesOS || getDetalhesFromCache(ordem) || {};
+  // Merge: dados do banco têm prioridade, fallback para cache local
+  const d = {
+    nomeAssistencia: ordem.nome_assistencia || detalhes.nomeAssistencia || '',
+    nomeCliente: ordem.cliente || detalhes.nomeCliente || '',
+    documentoCliente: ordem.documento_cliente || detalhes.documentoCliente || '',
+    telefoneCliente: ordem.telefone_cliente || detalhes.telefoneCliente || '',
+    modeloAparelho: ordem.equipamento || detalhes.modeloAparelho || '',
+    defeitoApresentado: ordem.descricao || detalhes.defeitoApresentado || '',
+    termoGarantia: ordem.termo_garantia || detalhes.termoGarantia || '',
+    valorConserto: ordem.valor || detalhes.valorConserto || 0,
+    previsaoEntrega: ordem.previsao_entrega || detalhes.previsaoEntrega || '',
+    fotoAparelho: ordem.foto_aparelho || detalhes.fotoAparelho || '',
+    assinaturaTecnico: ordem.assinatura_tecnico || detalhes.assinaturaTecnico || '',
+    assinaturaCliente: ordem.assinatura_cliente || detalhes.assinaturaCliente || '',
+  };
   ordemDetalhesAtual = {
     id: ordem.id,
     numOS: ordem.numOS || ordem.numero || '',
@@ -960,29 +991,29 @@ function verDetalhesOrdem(id) {
     valor: ordem.valor || 0,
     descricao: ordem.descricao || '',
     status: ordem.status || 'Aberta',
-    detalhes,
+    detalhes: d,
   };
   const content = getById('ordemDetalhesContent');
   if (!content) return;
 
-  const fotoHtml = detalhes.fotoAparelho
+  const fotoHtml = d.fotoAparelho
     ? `<div class="ordem-detalhes-item ordem-detalhes-full">
          <span class="ordem-detalhes-label">Foto do aparelho</span>
-         <img class="ordem-detalhes-photo" src="${escapeHtml(detalhes.fotoAparelho)}" alt="Foto do aparelho" />
+         <img class="ordem-detalhes-photo" src="${escapeHtml(d.fotoAparelho)}" alt="Foto do aparelho" />
        </div>`
     : '';
 
-  const assinaturasHtml = (detalhes.assinaturaTecnico || detalhes.assinaturaCliente)
+  const assinaturasHtml = (d.assinaturaTecnico || d.assinaturaCliente)
     ? `<div class="ordem-detalhes-item ordem-detalhes-full">
          <span class="ordem-detalhes-label">Assinaturas</span>
          <div class="ordem-signatures-view">
            <div class="ordem-signature-box">
              <span class="ordem-detalhes-label">Técnico</span>
-             ${detalhes.assinaturaTecnico ? `<img src="${escapeHtml(detalhes.assinaturaTecnico)}" alt="Assinatura do técnico" />` : '<span class="ordem-detalhes-value">Não informada</span>'}
+             ${d.assinaturaTecnico ? `<img src="${escapeHtml(d.assinaturaTecnico)}" alt="Assinatura do técnico" />` : '<span class="ordem-detalhes-value">Não informada</span>'}
            </div>
            <div class="ordem-signature-box">
              <span class="ordem-detalhes-label">Cliente</span>
-             ${detalhes.assinaturaCliente ? `<img src="${escapeHtml(detalhes.assinaturaCliente)}" alt="Assinatura do cliente" />` : '<span class="ordem-detalhes-value">Não informada</span>'}
+             ${d.assinaturaCliente ? `<img src="${escapeHtml(d.assinaturaCliente)}" alt="Assinatura do cliente" />` : '<span class="ordem-detalhes-value">Não informada</span>'}
            </div>
          </div>
        </div>`
@@ -992,14 +1023,14 @@ function verDetalhesOrdem(id) {
     <div class="ordem-detalhes-grid">
       ${buildDetalhesBlock('Número da O.S.', ordem.numOS || ordem.numero || '-')}
       ${buildDetalhesBlock('Status', ordem.status || '-')}
-      ${buildDetalhesBlock('Cliente', detalhes.nomeCliente || ordem.cliente || '-')}
-      ${buildDetalhesBlock('Documento', detalhes.documentoCliente || '-')}
-      ${buildDetalhesBlock('Telefone', detalhes.telefoneCliente || '-')}
-      ${buildDetalhesBlock('Aparelho', detalhes.modeloAparelho || ordem.equipamento || '-')}
-      ${buildDetalhesBlock('Valor', `R$ ${formatCurrencyBRL(detalhes.valorConserto || ordem.valor || 0)}`)}
-      ${buildDetalhesBlock('Previsão de entrega', detalhes.previsaoEntrega ? new Date(`${detalhes.previsaoEntrega}T00:00:00`).toLocaleDateString('pt-BR') : '-')}
-      ${buildDetalhesBlock('Defeito apresentado', detalhes.defeitoApresentado || ordem.descricao || '-', true)}
-      ${buildDetalhesBlock('Termo de garantia', detalhes.termoGarantia || '-', true)}
+      ${buildDetalhesBlock('Cliente', d.nomeCliente || '-')}
+      ${buildDetalhesBlock('Documento', d.documentoCliente || '-')}
+      ${buildDetalhesBlock('Telefone', d.telefoneCliente || '-')}
+      ${buildDetalhesBlock('Aparelho', d.modeloAparelho || '-')}
+      ${buildDetalhesBlock('Valor', `R$ ${formatCurrencyBRL(d.valorConserto || 0)}`)}
+      ${buildDetalhesBlock('Previsão de entrega', d.previsaoEntrega ? new Date(`${d.previsaoEntrega}T00:00:00`).toLocaleDateString('pt-BR') : '-')}
+      ${buildDetalhesBlock('Defeito apresentado', d.defeitoApresentado || '-', true)}
+      ${buildDetalhesBlock('Termo de garantia', d.termoGarantia || '-', true)}
       ${fotoHtml}
       ${assinaturasHtml}
     </div>
@@ -1893,6 +1924,12 @@ function renderFaturamentoMensalChart() {
   const ctx = document.getElementById('chartFaturamentoMensal');
   if (!ctx) return;
   const c = getChartColors();
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  const ctxCanvas = ctx.getContext('2d');
+  const gradient = ctxCanvas.createLinearGradient(0, 0, 0, 320);
+  gradient.addColorStop(0, isDark ? 'rgba(14,159,170,0.28)' : 'rgba(14,159,170,0.18)');
+  gradient.addColorStop(1, 'rgba(14,159,170,0)');
+
   new Chart(ctx, {
     type: 'line',
     data: {
@@ -1901,24 +1938,36 @@ function renderFaturamentoMensalChart() {
         label: 'Lucro',
         data: getLucroMensal(),
         borderColor: c.teal,
-        backgroundColor: 'rgba(14,159,170,0.08)',
-        borderWidth: 2.5,
-        pointBackgroundColor: c.teal,
-        pointRadius: 4,
+        backgroundColor: gradient,
+        borderWidth: 3,
+        pointBackgroundColor: '#fff',
+        pointBorderColor: c.teal,
+        pointBorderWidth: 2.5,
+        pointRadius: 5,
+        pointHoverRadius: 8,
+        pointHoverBackgroundColor: c.teal,
+        pointHoverBorderColor: '#fff',
+        pointHoverBorderWidth: 3,
         fill: true,
         tension: 0.4,
       }]
     },
-    options: chartOptions(c, 'R$')
+    options: premiumChartOptions(c, 'R$', isDark)
   });
 }
 
 function renderRelatorioCharts() {
   const c = getChartColors();
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
 
-  // Chart 1 - Faturamento mensal (barras)
+  // Chart 1 - Lucro Mensal (barras gradiente)
   const ctx1 = document.getElementById('chartFatMensal2');
   if (ctx1 && !ctx1._chart) {
+    const ctxCanvas1 = ctx1.getContext('2d');
+    const barGradient = ctxCanvas1.createLinearGradient(0, 0, 0, 300);
+    barGradient.addColorStop(0, 'rgba(14,159,170,0.85)');
+    barGradient.addColorStop(1, 'rgba(14,159,170,0.25)');
+
     ctx1._chart = new Chart(ctx1, {
       type: 'bar',
       data: {
@@ -1926,125 +1975,231 @@ function renderRelatorioCharts() {
         datasets: [{
           label: 'Lucro',
           data: getLucroMensal(),
-          backgroundColor: 'rgba(14,159,170,0.65)',
+          backgroundColor: barGradient,
           borderColor: c.teal,
-          borderWidth: 1.5,
-          borderRadius: 6,
+          borderWidth: 0,
+          borderRadius: 8,
+          borderSkipped: false,
+          hoverBackgroundColor: c.teal,
         }]
       },
-      options: chartOptions(c, 'R$')
+      options: premiumChartOptions(c, 'R$', isDark)
     });
   }
 
-  // Chart 2 - Donut distribuição
+  // Chart 2 - Distribuição por Categoria (DADOS REAIS)
   const ctx2 = document.getElementById('chartDistribuicao');
   if (ctx2 && !ctx2._chart) {
+    const totalServicos = ordens.filter(o => (o.status || '').toLowerCase().includes('conclu')).reduce((s, o) => s + Number(o.valor || 0), 0);
+    const totalVendas = vendas.reduce((s, v) => s + Number(v.valor || 0), 0);
+    const hasData = totalServicos > 0 || totalVendas > 0;
+
     ctx2._chart = new Chart(ctx2, {
       type: 'doughnut',
       data: {
-        labels: ['Serviços (OS)', 'Vendas'],
+        labels: hasData ? ['Serviços (OS)', 'Vendas'] : ['Sem dados'],
         datasets: [{
-          data: [50, 50],
-          backgroundColor: [c.teal, c.green],
+          data: hasData ? [totalServicos, totalVendas] : [1],
+          backgroundColor: hasData ? [
+            createDoughnutGradient(ctx2, '#0E9FAA', '#06B6D4'),
+            createDoughnutGradient(ctx2, '#10B981', '#34D399')
+          ] : [isDark ? '#334155' : '#E2E8F0'],
           borderWidth: 0,
-          hoverOffset: 8,
+          hoverOffset: 12,
+          spacing: 4,
         }]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        animation: { animateRotate: true, animateScale: true, duration: 800, easing: 'easeOutQuart' },
         plugins: {
           legend: {
             position: 'bottom',
-            labels: { color: c.text, font: { size: 12, family: 'Plus Jakarta Sans' }, padding: 16 }
-          }
+            labels: { color: c.text, font: { size: 12, family: 'Plus Jakarta Sans', weight: '500' }, padding: 20, usePointStyle: true, pointStyle: 'circle' }
+          },
+          tooltip: premiumTooltip(isDark, (ctx) => {
+            if(!hasData) return ' Sem dados';
+            const total = ctx.dataset.data.reduce((a,b) => a+b, 0);
+            const pct = total > 0 ? ((ctx.parsed / total) * 100).toFixed(1) : 0;
+            return ` R$ ${ctx.parsed.toLocaleString('pt-BR', {minimumFractionDigits:2})} (${pct}%)`;
+          })
         },
-        cutout: '60%',
+        cutout: '68%',
       }
     });
   }
 
-  // Chart 3 - Ordens por status
+  // Chart 3 - Ordens por Status (horizontal bar)
   const ctx3 = document.getElementById('chartOrdensPorStatus');
   if (ctx3 && !ctx3._chart) {
+    const statusData = [
+      ordens.filter(o => o.status === 'Aberta').length,
+      ordens.filter(o => o.status === 'Em andamento').length,
+      ordens.filter(o => (o.status || '').toLowerCase().includes('conclu')).length,
+      ordens.filter(o => o.status === 'Cancelada').length,
+    ];
+
+    const statusColors = ['#8B5CF6', '#F59E0B', '#10B981', '#EF4444'];
+    const statusBgColors = statusColors.map(color => color + 'CC');
+
     ctx3._chart = new Chart(ctx3, {
       type: 'bar',
       data: {
         labels: ['Abertas', 'Em andamento', 'Concluídas', 'Canceladas'],
         datasets: [{
           label: 'Ordens',
-          data: [
-            ordens.filter(o => o.status === 'Aberta').length,
-            ordens.filter(o => o.status === 'Em andamento').length,
-            ordens.filter(o => o.status === 'Concluída').length,
-            ordens.filter(o => o.status === 'Cancelada').length,
-          ],
-          backgroundColor: [c.purple, c.amber, c.green, 'rgba(239,68,68,0.65)'],
-          borderRadius: 6,
+          data: statusData,
+          backgroundColor: statusBgColors,
+          hoverBackgroundColor: statusColors,
+          borderRadius: 8,
+          borderSkipped: false,
           borderWidth: 0,
+          barPercentage: 0.6,
+          categoryPercentage: 0.7,
         }]
       },
-      options: chartOptions(c, '')
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: { duration: 800, easing: 'easeOutQuart' },
+        plugins: {
+          legend: { display: false },
+          tooltip: premiumTooltip(isDark, (ctx) => ` ${ctx.parsed.x} ${ctx.parsed.x === 1 ? 'ordem' : 'ordens'}`)
+        },
+        scales: {
+          x: { grid: { color: c.grid, drawBorder: false }, ticks: { color: c.text, font: { size: 11, family: 'Plus Jakarta Sans' }, stepSize: 1 } },
+          y: { grid: { display: false }, ticks: { color: c.text, font: { size: 12, family: 'Plus Jakarta Sans', weight: '600' } } }
+        }
+      }
     });
   }
 
-  // Chart 4 - Vendas por dia da semana
+  // Chart 4 - Vendas por Dia da Semana (radar chart)
   const ctx4 = document.getElementById('chartVendasDia');
   if (ctx4 && !ctx4._chart) {
     const diasNomes = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
     const diasCount = [0,0,0,0,0,0,0];
     vendas.forEach(v => {
-      const partes = v.data.split('/');
-      if (partes.length === 3) {
-        const d = new Date(partes[2], partes[1]-1, partes[0]);
-        diasCount[d.getDay()]++;
+      const base = v.dataIso || v.data;
+      let d = new Date(base);
+      if (Number.isNaN(d.getTime()) && typeof v.data === 'string') {
+        const partes = v.data.split('/');
+        if (partes.length === 3) d = new Date(partes[2], partes[1]-1, partes[0]);
       }
+      if (!Number.isNaN(d.getTime())) diasCount[d.getDay()]++;
     });
+
     ctx4._chart = new Chart(ctx4, {
-      type: 'bar',
+      type: 'radar',
       data: {
         labels: diasNomes,
         datasets: [{
           label: 'Vendas',
           data: diasCount,
-          backgroundColor: 'rgba(99,102,241,0.65)',
-          borderColor: c.purple,
-          borderWidth: 1.5,
-          borderRadius: 6,
+          backgroundColor: isDark ? 'rgba(99,102,241,0.2)' : 'rgba(99,102,241,0.12)',
+          borderColor: '#6366F1',
+          borderWidth: 2.5,
+          pointBackgroundColor: '#fff',
+          pointBorderColor: '#6366F1',
+          pointBorderWidth: 2,
+          pointRadius: 5,
+          pointHoverRadius: 8,
+          pointHoverBackgroundColor: '#6366F1',
+          pointHoverBorderColor: '#fff',
         }]
       },
-      options: chartOptions(c, '')
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: { duration: 800, easing: 'easeOutQuart' },
+        plugins: {
+          legend: { display: false },
+          tooltip: premiumTooltip(isDark, (ctx) => ` ${ctx.parsed.r} ${ctx.parsed.r === 1 ? 'venda' : 'vendas'}`)
+        },
+        scales: {
+          r: {
+            beginAtZero: true,
+            grid: { color: c.grid },
+            angleLines: { color: c.grid },
+            ticks: { stepSize: 1, color: c.text, font: { size: 10, family: 'Plus Jakarta Sans' }, backdropColor: 'transparent' },
+            pointLabels: { color: c.text, font: { size: 12, family: 'Plus Jakarta Sans', weight: '600' } }
+          }
+        },
+        elements: { line: { tension: 0.15 } }
+      }
     });
   }
 }
 
-function chartOptions(c, prefix) {
+// ==================== PREMIUM CHART HELPERS ====================
+function premiumTooltip(isDark, labelCallback) {
+  return {
+    backgroundColor: isDark ? 'rgba(15,23,42,0.95)' : 'rgba(15,23,42,0.92)',
+    titleColor: '#fff',
+    bodyColor: '#CBD5E1',
+    titleFont: { family: 'Plus Jakarta Sans', weight: '600', size: 13 },
+    bodyFont: { family: 'Plus Jakarta Sans', size: 12 },
+    padding: 14,
+    cornerRadius: 10,
+    displayColors: true,
+    boxPadding: 6,
+    borderColor: 'rgba(255,255,255,0.08)',
+    borderWidth: 1,
+    callbacks: { label: labelCallback }
+  };
+}
+
+function premiumChartOptions(c, prefix, isDark) {
   return {
     responsive: true,
     maintainAspectRatio: false,
+    animation: { duration: 800, easing: 'easeOutQuart' },
+    interaction: { mode: 'index', intersect: false },
     plugins: {
       legend: { display: false },
-      tooltip: {
-        backgroundColor: 'rgba(15,24,35,0.9)',
-        titleColor: '#fff',
-        bodyColor: '#aaa',
-        padding: 10,
-        callbacks: prefix ? {
-          label: ctx => `${prefix} ${ctx.parsed.y.toFixed(2)}`
-        } : {}
-      }
+      tooltip: premiumTooltip(isDark, (ctx) => {
+        const val = ctx.parsed.y != null ? ctx.parsed.y : ctx.parsed;
+        return prefix ? ` ${prefix} ${Number(val).toLocaleString('pt-BR', {minimumFractionDigits:2})}` : ` ${val}`;
+      })
     },
     scales: {
       x: {
-        grid: { color: c.grid },
-        ticks: { color: c.text, font: { size: 11, family: 'Plus Jakarta Sans' } }
+        grid: { display: false },
+        ticks: { color: c.text, font: { size: 11, family: 'Plus Jakarta Sans', weight: '500' }, maxRotation: 0 },
+        border: { display: false }
       },
       y: {
-        grid: { color: c.grid },
-        ticks: { color: c.text, font: { size: 11, family: 'Plus Jakarta Sans' } }
+        grid: { color: c.grid, drawBorder: false },
+        ticks: {
+          color: c.text,
+          font: { size: 11, family: 'Plus Jakarta Sans' },
+          callback: function(value) {
+            if (prefix === 'R$') return 'R$ ' + Number(value).toLocaleString('pt-BR', {minimumFractionDigits: 0, maximumFractionDigits: 0});
+            return value;
+          }
+        },
+        border: { display: false }
       }
     }
   };
+}
+
+function createDoughnutGradient(canvas, color1, color2) {
+  try {
+    const ctx = canvas.getContext('2d');
+    const g = ctx.createLinearGradient(0, 0, 0, canvas.height || 250);
+    g.addColorStop(0, color1);
+    g.addColorStop(1, color2);
+    return g;
+  } catch(e) {
+    return color1;
+  }
+}
+
+function chartOptions(c, prefix) {
+  return premiumChartOptions(c, prefix, document.documentElement.getAttribute('data-theme') === 'dark');
 }
 
 // ==================== KEYBOARD SHORTCUTS ====================

@@ -90,6 +90,14 @@ CREATE TABLE public.ordens_servico (
     data date NOT NULL DEFAULT CURRENT_DATE,
     created_at timestamp with time zone NOT NULL DEFAULT now(),
     updated_at timestamp with time zone NOT NULL DEFAULT now(),
+    documento_cliente text,
+    telefone_cliente text,
+    nome_assistencia text,
+    termo_garantia text,
+    previsao_entrega date,
+    foto_aparelho text,
+    assinatura_tecnico text,
+    assinatura_cliente text,
     CONSTRAINT ordens_servico_pkey PRIMARY KEY (id),
     CONSTRAINT ordens_servico_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
 );
@@ -159,27 +167,3 @@ CREATE TABLE public.vendas (
     CONSTRAINT vendas_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id),
     CONSTRAINT vendas_produto_id_fkey FOREIGN KEY (produto_id) REFERENCES public.produtos(id)
 );
-
--- ============================================================
--- FUNÇÃO: registrar_atividade (CRUD audit log)
--- Usada pelo frontend para logar add/delete de produtos, ordens e vendas
--- ============================================================
-CREATE OR REPLACE FUNCTION public.registrar_atividade(
-    p_action TEXT,
-    p_table_name TEXT,
-    p_record_id TEXT DEFAULT NULL,
-    p_old_values JSONB DEFAULT NULL,
-    p_new_values JSONB DEFAULT NULL
-)
-RETURNS VOID
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = public
-AS $$
-BEGIN
-    INSERT INTO public.audit_logs (user_id, action, table_name, record_id, old_values, new_values)
-    VALUES (auth.uid(), p_action, p_table_name, p_record_id, p_old_values, p_new_values);
-END;
-$$;
-
-GRANT EXECUTE ON FUNCTION public.registrar_atividade(TEXT, TEXT, TEXT, JSONB, JSONB) TO authenticated;
