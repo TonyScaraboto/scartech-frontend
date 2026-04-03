@@ -1439,3 +1439,208 @@ body.modal-open { overflow: hidden; }
   }
 }
 
+/* ==================== Faturamento — Tier list ==================== */
+.tier-list-card .tier-list-hint {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+  line-height: 1.55;
+  margin: 0;
+  max-width: 52rem;
+}
+
+.tier-ladder {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 4px 0 8px;
+}
+
+.tier-empty {
+  padding: 28px 16px;
+}
+
+.tier-block {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  gap: 0;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  overflow: hidden;
+  box-shadow: var(--shadow-1);
+}
+
+.tier-strip {
+  flex: 0 0 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Sora', 'Plus Jakarta Sans', sans-serif;
+  font-weight: 800;
+  font-size: 1.35rem;
+  letter-spacing: -0.02em;
+  color: #0f172a;
+}
+
+.tier-strip span {
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+
+.tier-block-s .tier-strip {
+  background: linear-gradient(180deg, #fde047 0%, #eab308 55%, #ca8a04 100%);
+}
+
+.tier-block-a .tier-strip {
+  background: linear-gradient(180deg, #6ee7b7 0%, #10b981 50%, #059669 100%);
+  color: #022c22;
+}
+
+.tier-block-a .tier-strip span {
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+.tier-block-b .tier-strip {
+  background: linear-gradient(180deg, #93c5fd 0%, #3b82f6 50%, #2563eb 100%);
+  color: #eff6ff;
+}
+
+.tier-block-b .tier-strip span {
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+
+.tier-block-c .tier-strip {
+  background: linear-gradient(180deg, #cbd5e1 0%, #94a3b8 45%, #64748b 100%);
+  color: #f8fafc;
+}
+
+.tier-block-c .tier-strip span {
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+html[data-theme='dark'] .tier-block-s .tier-strip {
+  background: linear-gradient(180deg, #facc15 0%, #ca8a04 100%);
+  color: #1a1000;
+}
+
+html[data-theme='dark'] .tier-block-a .tier-strip {
+  background: linear-gradient(180deg, #34d399 0%, #047857 100%);
+  color: #ecfdf5;
+}
+
+html[data-theme='dark'] .tier-block-b .tier-strip {
+  background: linear-gradient(180deg, #60a5fa 0%, #1d4ed8 100%);
+  color: #eff6ff;
+}
+
+html[data-theme='dark'] .tier-block-c .tier-strip {
+  background: linear-gradient(180deg, #64748b 0%, #334155 100%);
+  color: #f1f5f9;
+}
+
+.tier-items {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 12px 14px;
+  align-content: flex-start;
+  background: var(--color-bg);
+}
+
+html[data-theme='dark'] .tier-items {
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.tier-item-card {
+  flex: 1 1 200px;
+  min-width: min(100%, 200px);
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  transition: box-shadow var(--motion-base), transform var(--motion-base);
+}
+
+.tier-item-card:hover {
+  box-shadow: var(--shadow-2);
+  transform: translateY(-1px);
+}
+
+.tier-rank {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  padding-top: 2px;
+}
+
+.tier-item-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.tier-item-name {
+  display: block;
+  font-size: 0.95rem;
+  color: var(--color-text);
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+.tier-item-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  margin-top: 8px;
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+  align-items: baseline;
+}
+
+.tier-item-meta small {
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.85;
+}
+
+.tier-money {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.tier-money-lucro {
+  color: var(--color-green);
+}
+
+.tier-money-receita {
+  color: var(--color-teal);
+}
+
+.tier-money-receita-soft {
+  color: var(--color-text-secondary);
+  font-weight: 600;
+}
+
+@media (max-width: 600px) {
+  .tier-block {
+    flex-direction: column;
+  }
+
+  .tier-strip {
+    flex: 0 0 auto;
+    min-height: 44px;
+    width: 100%;
+  }
+
+  .tier-item-card {
+    flex: 1 1 100%;
+    min-width: 100%;
+  }
+}
+

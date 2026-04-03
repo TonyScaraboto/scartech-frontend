@@ -112,9 +112,8 @@
 
         <div class="tab-bar">
           <button type="button" class="tab-btn active" data-tab-target="tab-fat" onclick="switchTab('tab-fat', this)">💰 Faturamento</button>
-          <button type="button" class="tab-btn" data-tab-target="tab-loja" onclick="switchTab('tab-loja', this)">🧾 Fatura da Loja</button>
           <button type="button" class="tab-btn" data-tab-target="tab-rel" onclick="switchTab('tab-rel', this)">📊 Relatórios</button>
-          <button type="button" class="tab-btn" data-tab-target="tab-top" onclick="switchTab('tab-top', this)">🏆 Top Serviços</button>
+          <button type="button" class="tab-btn" data-tab-target="tab-top" onclick="switchTab('tab-top', this)">🏆 Tier list</button>
         </div>
 
         <!-- Tab Faturamento -->
@@ -195,22 +194,6 @@
           </div>
         </div>
 
-        <!-- Tab Fatura da Loja -->
-        <div class="tab-content hidden" id="tab-loja">
-          <div class="table-card">
-            <div class="table-card-header">
-              <h3>🧾 Fatura da Loja</h3>
-            </div>
-            <div style="padding: 28px 22px;">
-              <div class="empty-state">
-                <span class="empty-icon">📄</span>
-                <p style="max-width: 420px; margin: 0 auto 8px;">Área para emissão e organização das notas fiscais da sua assistência.</p>
-                <p class="page-sub" style="max-width: 480px; margin: 0 auto;">Use <strong>Faturamento</strong> para gráficos, receitas e balanço. Detalhes fiscais podem ser integrados aqui em evoluções futuras.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
         <!-- Tab Relatórios -->
         <div class="tab-content hidden" id="tab-rel">
           <div class="charts-grid">
@@ -241,56 +224,21 @@
           </div>
         </div>
 
-        <!-- Tab Top Serviços -->
+        <!-- Tab Tier list (serviços + vendas por lucro/receita) -->
         <div class="tab-content hidden" id="tab-top">
-          <div class="table-card">
+          <div class="table-card tier-list-card">
             <div class="table-card-header">
-              <h3>🥇 Top Serviços Mais Realizados</h3>
+              <h3>🔧 Tier list — Serviços</h3>
+              <p class="tier-list-hint">Ordens concluídas agrupadas por equipamento. Ordenado por <strong>receita total</strong> (faturamento por tipo de serviço).</p>
             </div>
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>Tipo de Serviço</th>
-                  <th>Quantidade</th>
-                  <th>Receita Total</th>
-                  <th>Tendência</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr class="empty-row">
-                  <td colspan="5">
-                    <div class="empty-state"><span class="empty-icon">🏆</span>
-                      <p>Sem dados de serviços</p>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+            <div id="tierListServicos" class="tier-ladder" aria-live="polite"></div>
           </div>
-          <div class="table-card">
+          <div class="table-card tier-list-card">
             <div class="table-card-header">
-              <h3>🛍️ Produtos Mais Vendidos</h3>
+              <h3>🛍️ Tier list — Vendas</h3>
+              <p class="tier-list-hint">Produtos agregados. Ordenado por <strong>lucro total</strong> (margem × quantidade); em empate usa receita.</p>
             </div>
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>Produto</th>
-                  <th>Quantidade</th>
-                  <th>Receita Total</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr class="empty-row">
-                  <td colspan="4">
-                    <div class="empty-state"><span class="empty-icon">📦</span>
-                      <p>Sem dados de vendas</p>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+            <div id="tierListVendas" class="tier-ladder" aria-live="polite"></div>
           </div>
         </div>
 

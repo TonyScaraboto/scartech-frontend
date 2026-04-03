@@ -70,6 +70,7 @@ async function initPage() {
     await carregarVendas();
     await carregarOrdens();
     renderChartsIfNeeded();
+    renderTierListFaturamento();
     initFaturamentoTabFromQuery();
   }
 }
@@ -129,17 +130,10 @@ function navigate(page) {
   if (urls[page]) window.location.href = urls[page];
 }
 
-/** Abre a aba correta na página de faturamento (?tab=loja). */
+/** Links antigos faturamento.html?tab=loja → página dedicada (aba removida daqui). */
 function initFaturamentoTabFromQuery() {
   const tab = new URLSearchParams(window.location.search).get('tab');
-  if (tab !== 'loja') return;
-  const pane = document.getElementById('tab-loja');
-  if (!pane) return;
-  document.querySelectorAll('#page-faturamento .tab-content').forEach((t) => t.classList.add('hidden'));
-  document.querySelectorAll('#page-faturamento .tab-btn').forEach((b) => b.classList.remove('active'));
-  pane.classList.remove('hidden');
-  const btn = document.querySelector('#page-faturamento .tab-btn[data-tab-target="tab-loja"]');
-  if (btn) btn.classList.add('active');
+  if (tab === 'loja') window.location.replace('fatura_da_loja.html');
 }
 
 // ==================== TABS ====================
@@ -156,6 +150,9 @@ function switchTab(tabId, btn) {
     setTimeout(() => {
       renderRelatorioCharts();
     }, 50);
+  }
+  if (tabId === 'tab-top') {
+    renderTierListFaturamento();
   }
 }
 
@@ -1861,6 +1858,114 @@ function renderListaOrdensDashboard() {
   list.innerHTML = itens + extra;
 }
 
+/** Tier para posição 1-based no ranking (estilo tier list). */
+function rankToTier(rank) {
+  if (rank === 1) return 'S';
+  if (rank <= 3) return 'A';
+  if (rank <= 6) return 'B';
+  return 'C';
+}
+
+function formatBRLTier(n) {
+  const v = Number(n) || 0;
+  return `R$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
+function buildTierLadderRows(items, mode) {
+  if (!items.length) {
+    return '<div class="empty-state tier-empty"><span class="empty-icon">🏆</span><p>Nenhum dado para montar o ranking ainda.</p></div>';
+  }
+  const groups = { S: [], A: [], B: [], C: [] };
+  items.forEach((item, i) => {
+    const rank = i + 1;
+    groups[rankToTier(rank)].push({ ...item, rank });
+  });
+  const order = ['S', 'A', 'B', 'C'];
+  return order
+    .filter((t) => groups[t].length)
+    .map((tier) => {
+      const rows = groups[tier]
+        .map((it) => {
+          const nome = escapeHtml(it.nome);
+          if (mode === 'servico') {
+            return `
+            <div class="tier-item-card">
+              <span class="tier-rank">#${it.rank}</span>
+              <div class="tier-item-body">
+                <strong class="tier-item-name">${nome}</strong>
+                <div class="tier-item-meta">
+                  <span>${it.qtd} OS</span>
+                  <span class="tier-money tier-money-receita">${formatBRLTier(it.receita)} <small>receita</small></span>
+                </div>
+              </div>
+            </div>`;
+          }
+          return `
+            <div class="tier-item-card">
+              <span class="tier-rank">#${it.rank}</span>
+              <div class="tier-item-body">
+                <strong class="tier-item-name">${nome}</strong>
+                <div class="tier-item-meta">
+                  <span>${it.qtd} ${it.qtd === 1 ? 'venda' : 'vendas'}</span>
+                  <span class="tier-money tier-money-lucro">${formatBRLTier(it.lucro)} <small>lucro</small></span>
+                  <span class="tier-money tier-money-receita-soft">${formatBRLTier(it.receita)} <small>receita</small></span>
+                </div>
+              </div>
+            </div>`;
+        })
+        .join('');
+      return `
+        <div class="tier-block tier-block-${tier.toLowerCase()}" role="group" aria-label="Tier ${tier}">
+          <div class="tier-strip" data-tier="${tier}"><span>${tier}</span></div>
+          <div class="tier-items">${rows}</div>
+        </div>`;
+    })
+    .join('');
+}
+
+/** Preenche as tier lists na aba Faturamento (protótipo). */
+function renderTierListFaturamento() {
+  const servRoot = document.getElementById('tierListServicos');
+  const vendasRoot = document.getElementById('tierListVendas');
+  if (!servRoot || !vendasRoot) return;
+
+  const concluidas = ordens.filter((o) => isStatusConcluida(o.status));
+  const servMap = {};
+  concluidas.forEach((o) => {
+    const key = String(o.equipamento || '').trim() || 'Serviço geral';
+    if (!servMap[key]) servMap[key] = { nome: key, qtd: 0, receita: 0 };
+    servMap[key].qtd += 1;
+    servMap[key].receita += Number(o.valor || 0);
+  });
+  const servicos = Object.values(servMap)
+    .map((d) => ({ ...d, score: d.receita }))
+    .sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score;
+      return a.nome.localeCompare(b.nome, 'pt-BR');
+    })
+    .slice(0, 12);
+
+  const vendMap = {};
+  vendas.forEach((v) => {
+    const key = String(v.produto || '').trim() || 'Produto';
+    if (!vendMap[key]) vendMap[key] = { nome: key, qtd: 0, receita: 0, lucro: 0 };
+    vendMap[key].qtd += Number(v.qtd || 1);
+    vendMap[key].receita += Number(v.valor || 0);
+    vendMap[key].lucro += Number(v.lucro ?? 0);
+  });
+  const vendasAgg = Object.values(vendMap)
+    .map((d) => ({ ...d, score: d.lucro }))
+    .sort((a, b) => {
+      if (b.lucro !== a.lucro) return b.lucro - a.lucro;
+      if (b.receita !== a.receita) return b.receita - a.receita;
+      return a.nome.localeCompare(b.nome, 'pt-BR');
+    })
+    .slice(0, 12);
+
+  servRoot.innerHTML = buildTierLadderRows(servicos, 'servico');
+  vendasRoot.innerHTML = buildTierLadderRows(vendasAgg, 'venda');
+}
+
 function atualizarCardsResumo() {
   const totalVendas = vendas.reduce((s, v) => s + Number(v.valor || 0), 0);
   const ordensConcluidas = ordens.filter(o => isStatusConcluida(o.status));
@@ -1882,6 +1987,7 @@ function atualizarCardsResumo() {
   set('fatTicket', `R$ ${ticket.toFixed(2)}`);
 
   renderListaOrdensDashboard();
+  if (document.getElementById('tierListServicos')) renderTierListFaturamento();
 }
 
 // ==================== CHARTS ====================
