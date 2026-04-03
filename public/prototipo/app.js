@@ -124,6 +124,7 @@ function navigate(page) {
     produtos: 'produtos.html',
     fornecedores: 'fornecedores.html',
     vendas: 'vendas.html',
+    configuracoes: 'configura\u00E7oes.html',
   };
   if (urls[page]) window.location.href = urls[page];
 }
@@ -199,6 +200,22 @@ function showToast(msg, type = 'success') {
 // ==================== SUPABASE (UTIL) ====================
 function hasSupabaseClient() {
   return window.supabase && typeof window.supabase.from === 'function';
+}
+
+// ==================== AUDIT LOG ====================
+async function registrarAtividade(action, tableName, recordId, oldValues, newValues) {
+  if (!hasSupabaseClient()) return;
+  try {
+    await window.supabase.rpc('registrar_atividade', {
+      p_action: action,
+      p_table_name: tableName,
+      p_record_id: recordId ? String(recordId) : null,
+      p_old_values: oldValues || null,
+      p_new_values: newValues || null,
+    });
+  } catch (e) {
+    console.warn('Audit log failed:', e);
+  }
 }
 
 function formatDateBR(isoDate) {
@@ -735,6 +752,7 @@ async function salvarOrdem() {
         }
         showToast('Ordem de serviço criada com sucesso!', 'success');
         setDetalhesCache({ id: inserted?.id, numOS }, detalhesCompletos);
+        registrarAtividade('ordem_adicionada', 'ordens_servico', inserted?.id, null, { cliente, equipamento, valor });
       }
 
       if (gerarPdfOrdem(data, numOS)) {
@@ -877,6 +895,7 @@ function badgeClass(status) {
 
 function excluirOrdem(id) {
   if (!confirm('Deseja excluir esta ordem?')) return;
+  const ordemInfo = ordens.find(o => o.id === id);
   if (hasSupabaseClient()) {
     window.supabase
       .from('ordens_servico')
@@ -887,6 +906,7 @@ function excluirOrdem(id) {
           showToast('Erro ao excluir ordem.', 'error');
           return;
         }
+        registrarAtividade('ordem_excluida', 'ordens_servico', id, { cliente: ordemInfo?.cliente, equipamento: ordemInfo?.equipamento }, null);
         carregarOrdens();
         showToast('Ordem excluída.', 'error');
       });
@@ -1093,15 +1113,18 @@ async function salvarProduto() {
 
       showToast('Produto atualizado com sucesso!');
     } else {
-      const { error } = await window.supabase
+      const { data: inserted, error } = await window.supabase
         .from('produtos')
-        .insert({ nome, categoria, estoque, preco, custo_compra: custo, data_compra: dataCompra });
+        .insert({ nome, categoria, estoque, preco, custo_compra: custo, data_compra: dataCompra })
+        .select('id')
+        .single();
 
       if (error) {
         showToast('Erro ao cadastrar produto.', 'error');
         return;
       }
 
+      registrarAtividade('produto_adicionado', 'produtos', inserted?.id, null, { nome, categoria, estoque, preco });
       showToast('Produto cadastrado com sucesso!');
     }
 
@@ -1192,6 +1215,7 @@ function renderProdutos(lista = null) {
 
 async function excluirProduto(id) {
   if (!confirm('Deseja excluir este produto?')) return;
+  const prodInfo = produtos.find(p => p.id === id);
   if (hasSupabaseClient()) {
     const { error } = await window.supabase
       .from('produtos')
@@ -1203,6 +1227,7 @@ async function excluirProduto(id) {
       return;
     }
 
+    registrarAtividade('produto_excluido', 'produtos', id, { nome: prodInfo?.nome, categoria: prodInfo?.categoria }, null);
     await carregarProdutos();
     showToast('Produto excluído.', 'error');
     return;
@@ -1412,6 +1437,7 @@ async function salvarVenda() {
       }
     }
 
+    registrarAtividade('venda_registrada', 'vendas', null, null, { cliente, produto: produtoSel.nome, qtd, valor });
     closeModal('modal-nova-venda');
     limparFormVenda();
     await carregarVendas();
@@ -1606,6 +1632,8 @@ async function confirmarExclusaoVenda() {
         return;
       }
 
+      const vendaExcluida = vendas.find(v => v.id === id);
+      registrarAtividade('venda_excluida', 'vendas', id, { cliente: vendaExcluida?.cliente, produto: vendaExcluida?.produto, valor: vendaExcluida?.valor }, null);
       await carregarVendas();
       await carregarProdutos(); // Garante atualização do estoque na UI
       showToast('Venda excluída com sucesso.');

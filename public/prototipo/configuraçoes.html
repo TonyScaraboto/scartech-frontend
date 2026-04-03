@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8" />
+  <script>(function(){var t=localStorage.getItem('scartech_theme');document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');if(t==='dark')document.documentElement.style.colorScheme='dark';})()</script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ScarTech — Configurações</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Sora:wght@400;600;700&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="style.css?v=20260329d" />
+  <style>
+    /* ==================== HISTÓRICO TIMELINE ==================== */
+    .config-section {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .history-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .history-filters {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .filter-chip {
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      font-family: inherit;
+      border: 1.5px solid var(--border);
+      background: var(--bg-card);
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .filter-chip:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .filter-chip.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+      box-shadow: 0 2px 8px rgba(14, 159, 170, 0.25);
+    }
+
+    /* Timeline */
+    .timeline {
+      position: relative;
+      padding-left: 44px;
+    }
+
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 18px;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: var(--border);
+      border-radius: 2px;
+    }
+
+    .timeline-group {
+      margin-bottom: 28px;
+    }
+
+    .timeline-date {
+      font-family: 'Sora', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--text-secondary);
+      margin-bottom: 12px;
+      position: relative;
+    }
+
+    .timeline-date::before {
+      content: '';
+      position: absolute;
+      left: -32px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--primary);
+      border: 2px solid var(--bg-card);
+      box-shadow: 0 0 0 2px var(--primary);
+    }
+
+    .timeline-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 14px 18px;
+      margin-bottom: 8px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      transition: all 0.2s ease;
+      position: relative;
+      animation: fadeInUp 0.35s ease forwards;
+      opacity: 0;
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .timeline-item:hover {
+      border-color: var(--primary);
+      box-shadow: 0 4px 16px rgba(14, 159, 170, 0.08);
+      transform: translateY(-1px);
+    }
+
+    .timeline-item::before {
+      content: '';
+      position: absolute;
+      left: -32px;
+      top: 20px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--border);
+    }
+
+    .tl-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+
+    .tl-icon.add {
+      background: rgba(16, 185, 129, 0.12);
+    }
+
+    .tl-icon.delete {
+      background: rgba(239, 68, 68, 0.12);
+    }
+
+    .tl-content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .tl-action {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 2px;
+    }
+
+    .tl-detail {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .tl-time {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .tl-badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 20px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+    }
+
+    .tl-badge.add {
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--green);
+    }
+
+    .tl-badge.delete {
+      background: rgba(239, 68, 68, 0.1);
+      color: var(--red);
+    }
+
+    .history-empty {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-muted);
+    }
+
+    .history-empty .empty-icon {
+      font-size: 3rem;
+      display: block;
+      margin-bottom: 12px;
+    }
+
+    .history-empty p {
+      font-size: 0.9rem;
+      max-width: 340px;
+      margin: 0 auto;
+    }
+
+    .history-loading {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-muted);
+    }
+
+    .spinner-ring {
+      display: inline-block;
+      width: 32px;
+      height: 32px;
+      border: 3px solid var(--border);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: 12px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .load-more-btn {
+      display: block;
+      margin: 20px auto 0;
+      padding: 10px 32px;
+      background: var(--bg-card);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      color: var(--text-secondary);
+      font-family: inherit;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .load-more-btn:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    /* Stats mini */
+    .history-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+
+    .history-stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .history-stat-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+
+    .history-stat-val {
+      font-family: 'Sora', sans-serif;
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      line-height: 1;
+    }
+
+    .history-stat-lab {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    @media (max-width: 700px) {
+      .history-header { flex-direction: column; align-items: flex-start; }
+      .timeline { padding-left: 32px; }
+      .timeline::before { left: 12px; }
+      .timeline-date::before { left: -24px; }
+      .timeline-item::before { left: -24px; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <img src="/logo.png" alt="ScarTech" style="width:36px;height:36px;border-radius:8px;" />
+      <span class="logo-text">ScarTech</span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <span class="nav-label">PRINCIPAL</span>
+        <a class="nav-item" data-page="dashboard" href="dashboard.html">
+          <span class="nav-icon">🏠</span>
+          <span class="nav-text">Dashboard</span>
+        </a>
+        <a class="nav-item" data-page="faturamento" href="faturamento.html">
+          <span class="nav-icon">💰</span>
+          <span class="nav-text">Faturamento</span>
+        </a>
+        <a class="nav-item" data-page="fatura_da_loja" href="fatura_da_loja.html">
+          <span class="nav-icon">🧾</span>
+          <span class="nav-text">Fatura da Loja</span>
+        </a>
+        <a class="nav-item active" data-page="configuracoes" href="configuraçoes.html">
+          <span class="nav-icon">⚙️</span>
+          <span class="nav-text">Configurações</span>
+        </a>
+      </div>
+      <div class="nav-section">
+        <span class="nav-label">GESTÃO</span>
+        <a class="nav-item" data-page="ordens" href="ordens.html">
+          <span class="nav-icon">📋</span>
+          <span class="nav-text">Ordens de Serviço</span>
+        </a>
+        <a class="nav-item" data-page="produtos" href="produtos.html">
+          <span class="nav-icon">📦</span>
+          <span class="nav-text">Produtos</span>
+        </a>
+        <a class="nav-item" data-page="fornecedores" href="fornecedores.html">
+          <span class="nav-icon">🤝</span>
+          <span class="nav-text">Fornecedores</span>
+        </a>
+        <a class="nav-item" data-page="vendas" href="vendas.html">
+          <span class="nav-icon">🛒</span>
+          <span class="nav-text">Vendas</span>
+        </a>
+      </div>
+      <!-- Item exclusivo para fornecedores - exibido via JS -->
+      <div class="nav-section" id="nav-fornecimento-section" style="display:none;">
+        <span class="nav-label">FORNECEDOR</span>
+        <a class="nav-item" data-page="fornecimento" href="fornecimento.html">
+          <span class="nav-icon">🏭</span>
+          <span class="nav-text">Meu Fornecimento</span>
+        </a>
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <a class="user-card user-card-link" href="perfil.html">
+        <div class="user-avatar" id="sidebarAvatar">ST</div>
+        <div class="user-info">
+          <span class="user-name" id="sidebarNome">Modo Teste</span>
+          <span class="user-role">Meu perfil →</span>
+        </div>
+      </a>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <div class="main-wrapper" id="mainWrapper">
+    <!-- TOP BAR -->
+    <header class="topbar">
+      <button class="menu-toggle" id="menuToggle" onclick="toggleSidebar()">
+        <span></span><span></span><span></span>
+      </button>
+      <div class="topbar-right">
+        <button class="theme-btn" onclick="toggleTheme()" title="Alternar tema">
+          <span id="themeIcon">&#9790;</span>
+        </button>
+        <button class="logout-btn" onclick="logout()">Sair</button>
+      </div>
+    </header>
+
+    <!-- PAGE CONTENT -->
+    <main class="page-content">
+      <div class="page" id="page-configuracoes">
+        <div class="config-section">
+
+          <div class="page-header-simple">
+            <h2 class="page-title">⚙️ Configurações</h2>
+            <p class="page-sub">Histórico de atividades da sua conta</p>
+          </div>
+
+          <!-- Stats -->
+          <div class="history-stats" id="historyStats">
+            <div class="history-stat-card">
+              <div class="history-stat-icon" style="background: rgba(16,185,129,0.12);">➕</div>
+              <div>
+                <div class="history-stat-val" id="statAdds">—</div>
+                <div class="history-stat-lab">Adições</div>
+              </div>
+            </div>
+            <div class="history-stat-card">
+              <div class="history-stat-icon" style="background: rgba(239,68,68,0.12);">🗑️</div>
+              <div>
+                <div class="history-stat-val" id="statDeletes">—</div>
+                <div class="history-stat-lab">Exclusões</div>
+              </div>
+            </div>
+            <div class="history-stat-card">
+              <div class="history-stat-icon" style="background: rgba(14,159,170,0.12);">📊</div>
+              <div>
+                <div class="history-stat-val" id="statTotal">—</div>
+                <div class="history-stat-lab">Total de Ações</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Filters -->
+          <div class="history-header">
+            <div class="history-filters" id="historyFilters">
+              <button class="filter-chip active" data-filter="all" onclick="setHistoryFilter('all', this)">Todas</button>
+              <button class="filter-chip" data-filter="produtos" onclick="setHistoryFilter('produtos', this)">📦 Produtos</button>
+              <button class="filter-chip" data-filter="ordens_servico" onclick="setHistoryFilter('ordens_servico', this)">📋 Ordens</button>
+              <button class="filter-chip" data-filter="vendas" onclick="setHistoryFilter('vendas', this)">🛒 Vendas</button>
+            </div>
+          </div>
+
+          <!-- Timeline -->
+          <div id="historyTimeline">
+            <div class="history-loading">
+              <div class="spinner-ring"></div>
+              <p>Carregando histórico...</p>
+            </div>
+          </div>
+
+          <button class="btn-back" onclick="window.location.href='dashboard.html'">← Voltar ao Dashboard</button>
+
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="toast" id="toast"></div>
+
+  <!-- Auth Guard & Supabase -->
+  <script src="supabasecliente.js"></script>
+  <script src="auth-guard.js"></script>
+  <script src="app.js?v=20260329d"></script>
+  <script>
+    let allLogs = [];
+    let currentFilter = 'all';
+    let logsLimit = 50;
+
+    const ACTION_MAP = {
+      'produto_adicionado':  { icon: '📦', label: 'Produto adicionado',  type: 'add' },
+      'produto_excluido':    { icon: '📦', label: 'Produto excluído',    type: 'delete' },
+      'ordem_adicionada':    { icon: '📋', label: 'Ordem de serviço criada', type: 'add' },
+      'ordem_excluida':      { icon: '📋', label: 'Ordem excluída',      type: 'delete' },
+      'venda_registrada':    { icon: '🛒', label: 'Venda registrada',    type: 'add' },
+      'venda_excluida':      { icon: '🛒', label: 'Venda excluída',      type: 'delete' },
+    };
+
+    const CRUD_ACTIONS = Object.keys(ACTION_MAP);
+
+    async function carregarHistorico() {
+      if (!window.supabase || typeof window.supabase.from !== 'function') {
+        document.getElementById('historyTimeline').innerHTML = `
+          <div class="history-empty">
+            <span class="empty-icon">🔌</span>
+            <p>Conexão com o banco de dados não disponível.</p>
+          </div>`;
+        return;
+      }
+
+      const { data: authData } = await window.supabase.auth.getUser();
+      const userId = authData?.user?.id;
+      if (!userId) return;
+
+      const { data, error } = await window.supabase
+        .from('audit_logs')
+        .select('id, action, table_name, record_id, old_values, new_values, created_at')
+        .eq('user_id', userId)
+        .in('action', CRUD_ACTIONS)
+        .order('created_at', { ascending: false })
+        .limit(200);
+
+      if (error) {
+        console.error('Erro ao carregar histórico:', error);
+        document.getElementById('historyTimeline').innerHTML = `
+          <div class="history-empty">
+            <span class="empty-icon">⚠️</span>
+            <p>Erro ao carregar o histórico. Tente novamente.</p>
+          </div>`;
+        return;
+      }
+
+      allLogs = data || [];
+      renderStats();
+      renderTimeline();
+    }
+
+    function renderStats() {
+      const adds = allLogs.filter(l => ACTION_MAP[l.action]?.type === 'add').length;
+      const dels = allLogs.filter(l => ACTION_MAP[l.action]?.type === 'delete').length;
+      document.getElementById('statAdds').textContent = adds;
+      document.getElementById('statDeletes').textContent = dels;
+      document.getElementById('statTotal').textContent = allLogs.length;
+    }
+
+    function setHistoryFilter(filter, btn) {
+      currentFilter = filter;
+      document.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      logsLimit = 50;
+      renderTimeline();
+    }
+
+    function renderTimeline() {
+      const container = document.getElementById('historyTimeline');
+      
+      let filtered = allLogs;
+      if (currentFilter !== 'all') {
+        filtered = allLogs.filter(l => l.table_name === currentFilter);
+      }
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="history-empty">
+            <span class="empty-icon">📭</span>
+            <p>Nenhuma atividade registrada${currentFilter !== 'all' ? ' nesta categoria' : ''}.</p>
+          </div>`;
+        return;
+      }
+
+      // Group by date
+      const groups = {};
+      const showing = filtered.slice(0, logsLimit);
+
+      showing.forEach(log => {
+        const d = new Date(log.created_at);
+        const dateKey = d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
+        if (!groups[dateKey]) groups[dateKey] = [];
+        groups[dateKey].push(log);
+      });
+
+      let html = '<div class="timeline">';
+      let delay = 0;
+
+      for (const [dateLabel, logs] of Object.entries(groups)) {
+        html += `<div class="timeline-group">`;
+        html += `<div class="timeline-date">${dateLabel}</div>`;
+
+        logs.forEach(log => {
+          const meta = ACTION_MAP[log.action] || { icon: '📝', label: log.action, type: 'add' };
+          const time = new Date(log.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+          
+          // Build detail text from new_values or old_values
+          let detail = '';
+          const vals = log.new_values || log.old_values;
+          if (vals) {
+            if (vals.nome) detail = vals.nome;
+            else if (vals.cliente) detail = `Cliente: ${vals.cliente}`;
+            else if (vals.produto) detail = vals.produto;
+          }
+          if (log.record_id) detail = detail || `Registro #${log.record_id}`;
+
+          html += `
+            <div class="timeline-item" style="animation-delay: ${delay * 0.05}s;">
+              <div class="tl-icon ${meta.type}">
+                ${meta.icon}
+              </div>
+              <div class="tl-content">
+                <div class="tl-action">
+                  ${meta.label}
+                  <span class="tl-badge ${meta.type}">${meta.type === 'add' ? 'ADIÇÃO' : 'EXCLUSÃO'}</span>
+                </div>
+                <div class="tl-detail">${escapeHtml(detail)}</div>
+              </div>
+              <div class="tl-time">${time}</div>
+            </div>`;
+          delay++;
+        });
+
+        html += `</div>`;
+      }
+
+      html += '</div>';
+
+      if (filtered.length > logsLimit) {
+        html += `<button class="load-more-btn" onclick="carregarMais()">Carregar mais (${filtered.length - logsLimit} restantes)</button>`;
+      }
+
+      container.innerHTML = html;
+    }
+
+    function carregarMais() {
+      logsLimit += 50;
+      renderTimeline();
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => {
+        carregarHistorico();
+      }, 500);
+    });
+  </script>
+</body>
+
+</html>
