@@ -1248,10 +1248,20 @@ body.modal-open { overflow: hidden; }
 }
 
 @media (max-width: 700px) {
-  .sidebar { transform: translateX(-100%); }
-  .sidebar.mobile-open { transform: translateX(0); }
+  /* Sidebar fixa com z-index maior que a topbar: fora da tela ainda pode roubar toques em alguns mobile browsers */
+  .sidebar {
+    transform: translateX(-100%);
+    pointer-events: none;
+  }
+  .sidebar.mobile-open {
+    transform: translateX(0);
+    pointer-events: auto;
+  }
   .main-wrapper { margin-left: 0; }
-  .topbar { padding: 0 14px; }
+  .topbar {
+    padding: 0 14px;
+    z-index: 120;
+  }
   .topbar-right { gap: 8px; }
   .logout-btn { padding: 7px 12px; font-size: 0.78rem; }
   .dashboard-cards { grid-template-columns: 1fr 1fr; }
