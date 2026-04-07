@@ -14,7 +14,7 @@
     rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <link rel="stylesheet" href="style.css?v=20260329d" />
+  <link rel="stylesheet" href="style.css?v=20260406a" />
 </head>
 
 <body>
@@ -233,7 +233,7 @@
         <div class="form-group full">
           <label>📷 Foto do Aparelho</label>
           <div class="photo-upload-area" id="photoUploadArea">
-            <input type="file" id="fotoAparelho" accept="image/*" />
+            <input type="file" id="fotoAparelho" accept="image/*" capture="environment" aria-label="Tirar ou escolher foto do aparelho" />
             <div id="uploadPlaceholder" class="photo-upload-text">Clique para selecionar uma foto do aparelho</div>
             <img id="photoPreview" class="photo-preview" alt="Preview da foto" />
           </div>
@@ -293,7 +293,7 @@
   <!-- Auth Guard & Supabase -->
   <script src="supabasecliente.js"></script>
   <script src="auth-guard.js"></script>
-  <script src="app.js?v=20260329d"></script>
+  <script src="app.js?v=20260406a"></script>
 </body>
 
 </html>

@@ -1035,6 +1035,7 @@ body.modal-open { overflow: hidden; }
 }
 
 .photo-upload-area {
+  position: relative;
   border: 1.5px dashed var(--border);
   background: var(--bg);
   border-radius: var(--radius-sm);
@@ -1042,6 +1043,11 @@ body.modal-open { overflow: hidden; }
   text-align: center;
   cursor: pointer;
   transition: all var(--transition);
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 .photo-upload-area:hover {
@@ -1049,13 +1055,26 @@ body.modal-open { overflow: hidden; }
   background: var(--primary-light);
 }
 
+/* display:none + input.click() não abre câmera/arquivos em Safari iOS e vários mobile; input cobre a área com opacidade 0 */
 .photo-upload-area input[type='file'] {
-  display: none;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 2;
+  font-size: 1rem;
 }
 
 .photo-upload-text {
   color: var(--text-secondary);
   font-size: 0.85rem;
+  pointer-events: none;
+  position: relative;
+  z-index: 0;
 }
 
 .photo-preview {
@@ -1064,6 +1083,9 @@ body.modal-open { overflow: hidden; }
   max-height: 220px;
   margin: 0 auto;
   border-radius: var(--radius-sm);
+  pointer-events: none;
+  position: relative;
+  z-index: 1;
 }
 
 .photo-preview.visible {

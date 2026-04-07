@@ -443,14 +443,16 @@ function initPhotoUploadArea() {
     reader.readAsDataURL(file);
   };
 
-  area.addEventListener('click', (e) => {
-    if (e.target.tagName !== 'BUTTON') input.click();
-  });
-  area.addEventListener('dragover', (e) => e.preventDefault());
-  area.addEventListener('drop', (e) => {
+  /* Toque deve ir ao input nativo (área coberta no CSS); input.click() com input oculto falha em Safari iOS. */
+  const onDragOver = (e) => e.preventDefault();
+  const onDrop = (e) => {
     e.preventDefault();
     processFile(e.dataTransfer?.files?.[0]);
-  });
+  };
+  area.addEventListener('dragover', onDragOver);
+  area.addEventListener('drop', onDrop);
+  input.addEventListener('dragover', onDragOver);
+  input.addEventListener('drop', onDrop);
   input.addEventListener('change', (e) => processFile(e.target.files?.[0]));
 }
 
