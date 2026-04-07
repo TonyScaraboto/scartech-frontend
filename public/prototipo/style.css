@@ -1270,19 +1270,29 @@ body.modal-open { overflow: hidden; }
 }
 
 @media (max-width: 700px) {
-  /* Sidebar fixa com z-index maior que a topbar: fora da tela ainda pode roubar toques em alguns mobile browsers */
+  /*
+   * Empilhamento: .sidebar (z 100) é irmã de .main-wrapper (auto). Sem z-index no wrapper,
+   * toda a coluna principal fica ATRÁS da sidebar no paint; z-index na .topbar não vence a sidebar.
+   * Com wrapper z 110 e drawer aberto z 150, o botão do menu e o overlay ficam corretos.
+   */
+  .main-wrapper {
+    margin-left: 0;
+    position: relative;
+    z-index: 110;
+  }
   .sidebar {
     transform: translateX(-100%);
     pointer-events: none;
+    z-index: 100;
   }
   .sidebar.mobile-open {
     transform: translateX(0);
     pointer-events: auto;
+    z-index: 150;
   }
-  .main-wrapper { margin-left: 0; }
   .topbar {
     padding: 0 14px;
-    z-index: 120;
+    z-index: 1;
   }
   .topbar-right { gap: 8px; }
   .logout-btn { padding: 7px 12px; font-size: 0.78rem; }

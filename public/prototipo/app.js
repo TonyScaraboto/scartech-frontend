@@ -78,14 +78,19 @@ async function initPage() {
 // ==================== SIDEBAR ====================
 function toggleSidebar() {
   const sidebar = document.getElementById('sidebar');
-  const main    = document.getElementById('mainWrapper');
-  if (window.innerWidth <= 700) {
+  const main = document.getElementById('mainWrapper');
+  if (!sidebar) return;
+  const mobile = typeof window.matchMedia === 'function'
+    ? window.matchMedia('(max-width: 700px)').matches
+    : window.innerWidth <= 700;
+  if (mobile) {
     sidebar.classList.toggle('mobile-open');
   } else {
     sidebar.classList.toggle('collapsed');
-    main.classList.toggle('expanded');
+    if (main) main.classList.toggle('expanded');
   }
 }
+window.toggleSidebar = toggleSidebar;
 
 // ==================== THEME ====================
 function syncThemeState(theme) {

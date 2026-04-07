@@ -13,7 +13,7 @@
     href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Sora:wght@400;600;700&display=swap"
     rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <link rel="stylesheet" href="style.css?v=20260407a" />
+  <link rel="stylesheet" href="style.css?v=20260407b" />
   <style>
     /* ==================== VENDAS LAYOUT ==================== */
     .vendas-filter-bar {
@@ -245,7 +245,7 @@
   <div class="main-wrapper" id="mainWrapper">
     <!-- TOP BAR -->
     <header class="topbar">
-      <button class="menu-toggle" id="menuToggle" onclick="toggleSidebar()">
+      <button type="button" class="menu-toggle" id="menuToggle" aria-label="Abrir ou fechar menu" onclick="window.toggleSidebar()">
         <span></span><span></span><span></span>
       </button>
       <div class="topbar-right">
@@ -502,7 +502,7 @@
   <!-- Auth Guard & Supabase -->
   <script src="supabasecliente.js"></script>
   <script src="auth-guard.js"></script>
-  <script src="app.js?v=20260407a"></script>
+  <script src="app.js?v=20260407b"></script>
 </body>
 
 </html>
