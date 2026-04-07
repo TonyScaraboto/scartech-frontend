@@ -1271,6 +1271,20 @@ body.modal-open { overflow: hidden; }
 
 @media (max-width: 700px) {
   /*
+   * Altura útil do navegador (barra de endereço móvel / iOS) e zoom automático de texto.
+   */
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  body {
+    min-height: 100vh;
+    min-height: 100dvh;
+    min-height: -webkit-fill-available;
+  }
+
+  /*
    * Empilhamento: .sidebar (z 100) é irmã de .main-wrapper (auto). Sem z-index no wrapper,
    * toda a coluna principal fica ATRÁS da sidebar no paint; z-index na .topbar não vence a sidebar.
    * Com wrapper z 110 e drawer aberto z 150, o botão do menu e o overlay ficam corretos.
@@ -1279,20 +1293,51 @@ body.modal-open { overflow: hidden; }
     margin-left: 0;
     position: relative;
     z-index: 110;
+    min-height: 100vh;
+    min-height: 100dvh;
+    min-height: -webkit-fill-available;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+    overflow-x: clip;
   }
+
+  .page-content {
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+
   .sidebar {
     transform: translateX(-100%);
     pointer-events: none;
     z-index: 100;
+    height: 100vh;
+    height: 100dvh;
+    height: -webkit-fill-available;
+    max-height: 100dvh;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    box-sizing: border-box;
   }
+
   .sidebar.mobile-open {
     transform: translateX(0);
     pointer-events: auto;
     z-index: 150;
   }
+
   .topbar {
-    padding: 0 14px;
+    /* Safe-area superior (PWA / notch); laterais vêm do padding do .main-wrapper */
+    padding-top: max(0px, env(safe-area-inset-top, 0px));
+    padding-left: 14px;
+    padding-right: 14px;
+    padding-bottom: 0;
     z-index: 1;
+    box-sizing: border-box;
   }
   .topbar-right { gap: 8px; }
   .logout-btn { padding: 7px 12px; font-size: 0.78rem; }
@@ -1301,12 +1346,22 @@ body.modal-open { overflow: hidden; }
   .form-row { grid-template-columns: 1fr; }
   .page-header { flex-direction: column; align-items: flex-start; gap: 12px; }
   .filter-bar { flex-direction: column; }
+  .table-card {
+    max-width: 100%;
+    -webkit-overflow-scrolling: touch;
+  }
   .data-table { min-width: 560px; }
   .signatures-grid { grid-template-columns: 1fr; }
   .ordem-detalhes-grid { grid-template-columns: 1fr; }
   .ordem-signatures-view { grid-template-columns: 1fr; }
 
-  .modal-overlay { padding: 6px; align-items: flex-start; }
+  .modal-overlay {
+    padding-top: max(6px, env(safe-area-inset-top, 0px));
+    padding-right: max(6px, env(safe-area-inset-right, 0px));
+    padding-bottom: max(6px, env(safe-area-inset-bottom, 0px));
+    padding-left: max(6px, env(safe-area-inset-left, 0px));
+    align-items: flex-start;
+  }
   .modal, .modal-wide {
     max-width: 100%;
     max-height: calc(100vh - 12px);
@@ -1324,6 +1379,18 @@ body.modal-open { overflow: hidden; }
   .photo-preview { max-height: 150px; }
   .form-textarea { min-height: 70px; }
   .ordem-detalhes-photo { max-height: 180px; }
+
+  .toast {
+    right: max(16px, env(safe-area-inset-right, 0px));
+    bottom: max(20px, env(safe-area-inset-bottom, 0px));
+    left: auto;
+    max-width: calc(100vw - 32px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px));
+  }
+
+  .whatsapp-float {
+    right: max(16px, env(safe-area-inset-right, 0px));
+    bottom: max(20px, env(safe-area-inset-bottom, 0px) + 8px);
+  }
 }
 
 @media (max-width: 480px) {
